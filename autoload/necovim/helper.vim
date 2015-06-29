@@ -37,27 +37,13 @@ let s:dictionary_path =
       \ substitute(fnamemodify(expand('<sfile>'), ':h'), '\\', '/', 'g')
 
 function! necovim#helper#on_filetype() "{{{
-  let bufnumber = 1
-
-  " Check buffer.
-  while bufnumber <= bufnr('$')
-    if getbufvar(bufnumber, '&filetype') == 'vim' && bufloaded(bufnumber)
-          \&& !has_key(s:script_candidates_list, bufnumber)
-      let s:script_candidates_list[bufnumber] =
-            \ s:get_script_candidates(bufnumber)
-    endif
-
-    let bufnumber += 1
-  endwhile
-endfunction"}}}
-
-function! necovim#helper#make_cache(bufname) "{{{
-  let bufnumber = a:bufname != '' ? bufnr(a:bufname) : bufnr('%')
-
-  if getbufvar(bufnumber, '&filetype') == 'vim' && bufloaded(bufnumber)
-    let s:script_candidates_list[bufnumber] = s:get_script_candidates(bufnumber)
-  endif
-  let s:global_candidates_list = { 'dictionary_variables' : {} }
+  for bufnumber in filter(range(1, bufnr('$')),
+        \ "getbufvar(v:val, '&filetype') == 'vim'
+        \  && bufloaded(v:val)
+        \  && !has_key(s:script_candidates_list, v:val)")
+    let s:script_candidates_list[bufnumber] =
+          \ s:get_script_candidates(bufnumber)
+  endfor
 endfunction"}}}
 
 function! necovim#helper#get_command_completion(command_name, cur_text, complete_str) "{{{
