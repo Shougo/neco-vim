@@ -25,6 +25,8 @@
 
 from .base import Base
 
+import deoplete.util
+
 class Source(Base):
     def __init__(self, vim):
         Base.__init__(self, vim)
@@ -35,9 +37,11 @@ class Source(Base):
 
     def get_complete_position(self, context):
         return self.vim.eval("necovim#get_complete_position('{0}')"
-                             .format(context['input']))
+                             .format(deoplete.util.escape(context['input'])
+                                     ))
 
     def gather_candidates(self, context):
         return self.vim.eval("necovim#gather_candidates('{0}', '{1}')"
-                        .format(context['input'],
-                                context['complete_str']))
+                        .format(deoplete.util.escape(context['input']),
+                                deoplete.util.escape(context['complete_str'])
+                                ))
