@@ -608,17 +608,14 @@ function! s:make_cache_functions() "{{{
   let functions = []
   let start = match(lines, '^abs')
   let end = match(lines, '^abs', start, 2)
-  let desc = ''
   for i in range(end-1, start, -1)
-    let desc = substitute(lines[i], '^\s\+\ze\S', '', '').' '.desc
-    let _ = matchlist(desc,
-          \'^\s*\(\(\i\+(\).*)\)\s\+\(\w*\)\s\+\(.\+[^*]\)$')
+    let _ = matchlist(lines[i],
+          \'^\s*\(\(\w\+(\).\{-})\)')
     if !empty(_)
       call insert(functions, {
             \ 'word' : _[2],
             \ 'abbr' : substitute(_[0], '(\zs\s\+', '', ''),
             \ })
-      let desc = ''
     endif
   endfor
 
