@@ -26,11 +26,6 @@
 let s:save_cpo = &cpo
 set cpo&vim
 
-" Global options definition. "{{{
-let g:necovim#complete_functions =
-      \ get(g:, 'necovim#complete_functions', {})
-"}}}
-
 let s:source = {
       \ 'name' : 'vim',
       \ 'kind' : 'manual',
