@@ -34,7 +34,7 @@ FAQ			|necovim-faq|
 ==============================================================================
 INTRODUCTION					*necovim-introduction*
 
-*neco-vim* is the source for neocomplete/deoplete.
+*neco-vim* is the Vim source for neocomplete/deoplete.
 
 ==============================================================================
 INSTALL						*necovim-install*
