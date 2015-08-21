@@ -609,12 +609,11 @@ function! s:make_cache_functions() "{{{
   let start = match(lines, '^abs')
   let end = match(lines, '^abs', start, 2)
   for i in range(end-1, start, -1)
-    let _ = matchlist(lines[i],
-          \'^\s*\(\(\w\+(\).\{-})\)')
-    if !empty(_)
+    let func = matchstr(lines[i], '^\s*\zs\w\+(.\{-})')
+    if func != ''
       call insert(functions, {
-            \ 'word' : _[2],
-            \ 'abbr' : substitute(_[0], '(\zs\s\+', '', ''),
+            \ 'word' : substitute(func, '(\zs.\+)', '', ''),
+            \ 'abbr' : substitute(func, '(\zs\s\+', '', ''),
             \ })
     endif
   endfor
@@ -809,10 +808,11 @@ function! s:make_completion_list(list) "{{{
 endfunction"}}}
 function! s:analyze_function_line(line, keyword_dict, prototype) "{{{
   " Get script function.
-  let line = substitute(matchstr(a:line, '\<fu\%[nction]!\?\s\+\zs.*)'), '".*$', '', '')
+  let line = substitute(matchstr(a:line,
+        \ '\<fu\%[nction]!\?\s\+\zs.*)'), '".*$', '', '')
   let orig_line = line
   let word = matchstr(line, '^\h[[:alnum:]_:#.]*()\?')
-  if word != '' && !has_key(a:keyword_dict, word) 
+  if word != '' && !has_key(a:keyword_dict, word)
     let a:keyword_dict[word] = {
           \ 'word' : word, 'abbr' : line, 'kind' : 'f'
           \}
