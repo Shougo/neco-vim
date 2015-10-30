@@ -683,13 +683,13 @@ function! s:get_cmdlist() "{{{
   let command_prototypes = {}
   let command_completions = {}
   for line in split(redir, '\n')[1:]
-    let word = matchstr(line, '\a\w*')
+    let word = matchstr(line, '\A\w*')
 
     " Analyze prototype.
-    let end = matchend(line, '\a\w*')
+    let end = matchend(line, '\A\w*')
     let args = matchstr(line, '[[:digit:]?+*]', end)
     if args != '0'
-      let prototype = matchstr(line, '\a\w*', end)
+      let prototype = matchstr(line, '\A\w*', end)
       let found = 0
       for comp in completions
         if comp == prototype
