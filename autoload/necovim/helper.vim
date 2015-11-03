@@ -573,7 +573,9 @@ function! s:make_cache_features() "{{{
 
   let features = []
   let lines = readfile(helpfile)
-  let start = match(lines, '^all_builtin_terms')
+  let start = match(lines,
+        \ ((v:version > 704 || v:version == 704 && has('patch11')) ?
+        \   'acl' : '^all_builtin_terms'))
   let end = match(lines, '^x11')
   for l in lines[start : end]
     let _ = matchlist(l, '^\(\k\+\)\t\+\(.\+\)$')
