@@ -287,11 +287,11 @@ function! necovim#helper#function(cur_text, complete_str) "{{{
     let s:internal_candidates_list.functions = s:make_cache_functions()
   endif
 
-  let script_candidates_list = s:get_cached_script_candidates()
+  let script_functions = values(s:get_cached_script_candidates().functions)
   if a:complete_str =~ '^s:'
-    let list = values(script_candidates_list.functions)
+    let list = script_functions
   elseif a:complete_str =~ '^\a:'
-    let functions = deepcopy(values(script_candidates_list.functions))
+    let functions = deepcopy(script_functions)
     for keyword in functions
       let keyword.word = '<SID>' . keyword.word[2:]
       let keyword.abbr = '<SID>' . keyword.abbr[2:]
@@ -300,6 +300,7 @@ function! necovim#helper#function(cur_text, complete_str) "{{{
   else
     let list = copy(s:internal_candidates_list.functions)
           \ + copy(s:global_candidates_list.functions)
+          \ + script_functions
   endif
 
   return list
@@ -463,8 +464,9 @@ function! s:get_script_candidates(bufnumber) "{{{
   let var_pattern = '\a:[[:alnum:]_:]*\.\h\w*\%(()\?\)\?'
 
   for line in getbufline(a:bufnumber, 1, '$')
-    if line =~ '\<fu\%[nction]!\?\s\+s:'
-      call s:analyze_function_line(line, function_dict, function_prototypes)
+    if line =~ '\<fu\%[nction]!\?\s\+'
+      call s:analyze_function_line(
+            \ line, function_dict, function_prototypes)
     elseif line =~ '\<let\s\+'
       " Get script variable.
       call s:analyze_variable_line(line, variable_dict)
@@ -476,7 +478,8 @@ function! s:get_script_candidates(bufnumber) "{{{
           let candidates_dict[var_name] = {}
         endif
 
-        call s:analyze_dictionary_variable_line(line, candidates_dict[var_name], var_name)
+        call s:analyze_dictionary_variable_line(
+              \ line, candidates_dict[var_name], var_name)
 
         let line = line[matchend(line, var_pattern) :]
       endwhile
