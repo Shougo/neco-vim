@@ -291,16 +291,18 @@ function! necovim#helper#function(cur_text, complete_str) "{{{
   if a:complete_str =~ '^s:'
     let list = script_functions
   elseif a:complete_str =~ '^\a:'
-    let functions = deepcopy(script_functions)
-    for keyword in functions
+    let list = deepcopy(script_functions)
+    for keyword in list
       let keyword.word = '<SID>' . keyword.word[2:]
       let keyword.abbr = '<SID>' . keyword.abbr[2:]
     endfor
-    let list = functions
   else
     let list = copy(s:internal_candidates_list.functions)
           \ + copy(s:global_candidates_list.functions)
           \ + script_functions
+    for functions in map(values(s:script_candidates_list), 'v:val.functions')
+      let list += values(filter(copy(functions), 'v:val.word[:1] !=# "s:"'))
+    endfor
   endif
 
   return list
