@@ -59,9 +59,6 @@ function! necovim#get_complete_position(input) "{{{
 endfunction"}}}
 
 function! necovim#gather_candidates(input, complete_str) "{{{
-  " Make cache
-  call necovim#helper#on_filetype()
-
   let cur_text = necovim#get_cur_text(a:input)
 
   if cur_text =~ '\h\w*\.\%(\h\w*\)\?$'

@@ -28,7 +28,8 @@ set cpo&vim
 
 if !exists('s:internal_candidates_list')
   let s:internal_candidates_list = {}
-  let s:global_candidates_list = { 'dictionary_variables' : {} }
+  let s:global_candidates_list = {
+        \ 'dictionary_variables' : {}, 'runtimepath' : &runtimepath }
   let s:script_candidates_list = {}
   let s:local_candidates_list = {}
 endif
@@ -36,14 +37,13 @@ endif
 let s:dictionary_path =
       \ substitute(fnamemodify(expand('<sfile>'), ':h'), '\\', '/', 'g')
 
-function! necovim#helper#on_filetype() "{{{
-  for bufnumber in filter(range(1, bufnr('$')),
-        \ "getbufvar(v:val, '&filetype') == 'vim'
-        \  && bufloaded(v:val)
-        \  && !has_key(s:script_candidates_list, v:val)")
-    let s:script_candidates_list[bufnumber] =
-          \ s:get_script_candidates(bufnumber)
-  endfor
+function! necovim#helper#make_cache() "{{{
+  if &filetype !=# 'vim'
+    return
+  endif
+
+  let s:script_candidates_list[bufnr('%')] =
+        \ s:get_script_candidates(bufnr('%'))
 endfunction"}}}
 
 function! necovim#helper#get_command_completion(command_name, cur_text, complete_str) "{{{
@@ -66,7 +66,7 @@ function! necovim#helper#get_completion_name(command_name) "{{{
     let s:internal_candidates_list.command_completions =
           \ s:make_cache_completion_from_dict('command_completions')
   endif
-  if !has_key(s:global_candidates_list, 'command_completions')
+  if s:check_global_candidates('command_completions')
     let s:global_candidates_list.commands = s:get_cmdlist()
   endif
 
@@ -90,7 +90,7 @@ function! necovim#helper#autocmd_args(cur_text, complete_str) "{{{
   endif
 
   " Make cache.
-  if !has_key(s:global_candidates_list, 'augroups')
+  if s:check_global_candidates('augroups')
     let s:global_candidates_list.augroups = s:get_augrouplist()
   endif
   if !has_key(s:internal_candidates_list, 'autocmds')
@@ -132,7 +132,7 @@ function! necovim#helper#autocmd_args(cur_text, complete_str) "{{{
 endfunction"}}}
 function! necovim#helper#augroup(cur_text, complete_str) "{{{
   " Make cache.
-  if !has_key(s:global_candidates_list, 'augroups')
+  if s:check_global_candidates('augroups')
     let s:global_candidates_list.augroups = s:get_augrouplist()
   endif
 
@@ -152,7 +152,7 @@ function! necovim#helper#command(cur_text, complete_str) "{{{
     " Commands.
 
     " Make cache.
-    if !has_key(s:global_candidates_list, 'commands')
+    if s:check_global_candidates('commands')
       let s:global_candidates_list.commands = s:get_cmdlist()
     endif
     if !has_key(s:internal_candidates_list, 'commands')
@@ -229,7 +229,7 @@ function! necovim#helper#dir(cur_text, complete_str) "{{{
 endfunction"}}}
 function! necovim#helper#environment(cur_text, complete_str) "{{{
   " Make cache.
-  if !has_key(s:global_candidates_list, 'environments')
+  if s:check_global_candidates('environments')
     let s:global_candidates_list.environments = s:get_envlist()
   endif
 
@@ -280,7 +280,7 @@ function! necovim#helper#filetype(cur_text, complete_str) "{{{
 endfunction"}}}
 function! necovim#helper#function(cur_text, complete_str) "{{{
   " Make cache.
-  if !has_key(s:global_candidates_list, 'functions')
+  if s:check_global_candidates('functions')
     let s:global_candidates_list.functions = s:get_functionlist()
   endif
   if !has_key(s:internal_candidates_list, 'functions')
@@ -325,7 +325,7 @@ function! necovim#helper#let(cur_text, complete_str) "{{{
 endfunction"}}}
 function! necovim#helper#mapping(cur_text, complete_str) "{{{
   " Make cache.
-  if !has_key(s:global_candidates_list, 'mappings')
+  if s:check_global_candidates('mappings')
     let s:global_candidates_list.mappings = s:get_mappinglist()
   endif
   if !has_key(s:internal_candidates_list, 'mappings')
@@ -386,7 +386,7 @@ function! necovim#helper#var_dictionary(cur_text, complete_str) "{{{
 endfunction"}}}
 function! necovim#helper#var(cur_text, complete_str) "{{{
   " Make cache.
-  if !has_key(s:global_candidates_list, 'variables')
+  if s:check_global_candidates('variables')
     let s:global_candidates_list.variables =
           \ s:get_variablelist(g:, 'g:') + s:get_variablelist(v:, 'v:')
           \ + s:make_completion_list(['v:val'])
@@ -967,6 +967,15 @@ function! s:set_dictionary_helper(variable, keys, pattern) "{{{
       let a:variable[key] = a:pattern
     endif
   endfor
+endfunction"}}}
+
+function! s:check_global_candidates(key) "{{{
+  if s:global_candidates_list.runtimepath !=# &runtimepath
+    let s:global_candidates_list.runtimepath = &runtimepath
+    return 1
+  endif
+
+  return !has_key(s:global_candidates_list, a:key)
 endfunction"}}}
 
 let &cpo = s:save_cpo
