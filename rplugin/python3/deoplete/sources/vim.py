@@ -35,6 +35,7 @@ class Source(Base):
         self.mark = '[vim]'
         self.filetypes = ['vim']
         self.is_bytepos = True
+        self.input_pattern = r'\.\w*'
 
     def get_complete_position(self, context):
         return self.vim.call('necovim#get_complete_position',

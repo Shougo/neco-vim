@@ -33,6 +33,7 @@ let s:source = {
       \ 'mark' : '[vim]',
       \ 'is_volatile' : 1,
       \ 'rank' : 300,
+      \ 'input_pattern' : '\.\w*',
       \}
 
 function! s:source.get_complete_position(context) "{{{
