@@ -35,7 +35,7 @@ class Source(Base):
         self.mark = '[vim]'
         self.filetypes = ['vim']
         self.is_bytepos = True
-        self.rank = 100
+        self.rank = 500
         self.input_pattern = r'\.\w*'
 
     def get_complete_position(self, context):
