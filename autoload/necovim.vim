@@ -36,7 +36,7 @@ let g:necovim#keyword_pattern =
       \'\|<\h[[:alnum:]_-]*>\?\|\h[[:alnum:]_:#]*[!(]\?\|$\h\w*')
 "}}}
 
-function! necovim#get_complete_position(input) "{{{
+function! necovim#get_complete_position(input) abort "{{{
   let cur_text = necovim#get_cur_text(a:input)
 
   if cur_text =~ '^\s*"'
@@ -58,7 +58,7 @@ function! necovim#get_complete_position(input) "{{{
   return complete_pos
 endfunction"}}}
 
-function! necovim#gather_candidates(input, complete_str) "{{{
+function! necovim#gather_candidates(input, complete_str) abort "{{{
   let cur_text = necovim#get_cur_text(a:input)
 
   if cur_text =~ '\h\w*\.\%(\h\w*\)\?$'
@@ -114,7 +114,7 @@ function! necovim#gather_candidates(input, complete_str) "{{{
   return list
 endfunction"}}}
 
-function! necovim#get_cur_text(input) "{{{
+function! necovim#get_cur_text(input) abort "{{{
   let cur_text = a:input
   if &filetype == 'vimshell' && exists('*vimshell#get_secondary_prompt')
         \   && empty(b:vimshell.continuation)
@@ -132,12 +132,12 @@ function! necovim#get_cur_text(input) "{{{
 
   return split(cur_text, '\s\+|\s\+\|<bar>', 1)[-1]
 endfunction"}}}
-function! necovim#get_command(cur_text) "{{{
+function! necovim#get_command(cur_text) abort "{{{
   return matchstr(a:cur_text, '\<\%(\d\+\)\?\zs\h\w*\ze!\?\|'.
         \ '\<\%([[:digit:],[:space:]$''<>]\+\)\?\zs\h\w*\ze/.*')
 endfunction"}}}
 
-function! necovim#match_word(cur_text, pattern) "{{{
+function! necovim#match_word(cur_text, pattern) abort "{{{
   let complete_pos = match(a:cur_text, a:pattern)
 
   let complete_str = (complete_pos >=0) ?
