@@ -736,7 +736,8 @@ function! s:get_cmdlist() abort "{{{
   return keyword_list
 endfunction"}}}
 function! s:get_variablelist(dict, prefix) abort "{{{
-  let kind_dict = ['0', '""', '()', '[]', '{}', '.', 'bool', 'none']
+  let kind_dict =
+        \ ['0', '""', '()', '[]', '{}', '.', 'b', 'no', 'j', 'ch']
   return values(map(copy(a:dict), "{
         \ 'word' : a:prefix.v:key,
         \ 'kind' : kind_dict[type(v:val)],
