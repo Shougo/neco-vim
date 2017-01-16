@@ -111,9 +111,6 @@ function! necovim#gather_candidates(input, complete_str) abort "{{{
           \ cur_text, a:complete_str)
   endif
 
-  for keyword in list
-    let keyword.dup = 1
-  endfor
   return list
 endfunction"}}}
 

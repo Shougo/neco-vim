@@ -174,11 +174,17 @@ function! necovim#helper#command(cur_text, complete_str) abort "{{{
     let list = necovim#helper#get_command_completion(
           \ command, cur_text, a:complete_str)
 
-    if a:cur_text =~
-          \'[[(,{]\|`=[^`]*$'
+    if completion_name !=# 'expression' &&
+          \ completion_name !=# 'custom' &&
+          \ completion_name !=# 'customlist' &&
+          \ a:cur_text =~ '[[(,{]\|`=[^`]*$'
       " Expression.
-      let list += necovim#helper#expression(
-            \ a:cur_text, a:complete_str)
+      if completion_name !=# 'function'
+        let list += necovim#helper#function(a:cur_text, a:complete_str)
+      endif
+      if completion_name !=# 'var'
+        let list += necovim#helper#var(a:cur_text, a:complete_str)
+      endif
     endif
   endif
 
