@@ -28,8 +28,7 @@ set cpo&vim
 
 augroup necovim
   autocmd!
-  autocmd FileType vim call necovim#helper#make_cache()
-  autocmd BufWritePost * call necovim#helper#make_cache()
+  autocmd BufWritePost,FileType vim call necovim#helper#make_cache()
 augroup END
 
 let g:loaded_necovim = 1
