@@ -437,10 +437,7 @@ function! s:make_cache_prototype_from_dict(dict_name) abort "{{{
   return keyword_dict
 endfunction"}}}
 function! s:make_cache_options() abort "{{{
-  redir => raw
-  silent set all
-  redir END
-  let options = map(filter(split(raw, '\s\{2,}\|\n')[1:],
+  let options = map(filter(split(s:redir('set all'), '\s\{2,}\|\n')[1:],
         \ "!empty(v:val) && v:val =~ '^\\h\\w*=\\?'"),
         \ "substitute(v:val, '^no\\|=\\zs.*$', '', '')")
   for option in copy(options)
@@ -557,12 +554,7 @@ function! s:make_cache_autocmds() abort "{{{
 endfunction"}}}
 
 function! s:get_cmdlist() abort "{{{
-  " Get command list.
-  redir => redir
-  silent! command
-  redir END
-
-  return map(split(redir, '\n')[1:], "
+  return map(split(s:redir('command'), '\n')[1:], "
         \ { 'word' : matchstr(v:val, '\\u\\w*'), 'kind' : 'c' }")
 endfunction"}}}
 function! s:get_variablelist(dict, prefix) abort "{{{
@@ -574,14 +566,9 @@ function! s:get_variablelist(dict, prefix) abort "{{{
         \}"))
 endfunction"}}}
 function! s:get_functionlist() abort "{{{
-  " Get function list.
-  redir => redir
-  silent! function
-  redir END
-
   let keyword_dict = {}
   let function_prototypes = {}
-  for line in split(redir, '\n')
+  for line in split(s:redir('function'), '\n')
     let line = line[9:]
     if line =~ '^<SNR>'
       continue
@@ -603,25 +590,15 @@ function! s:get_functionlist() abort "{{{
   return values(keyword_dict)
 endfunction"}}}
 function! s:get_augrouplist() abort "{{{
-  " Get augroup list.
-  redir => redir
-  silent! augroup
-  redir END
-
   let keyword_list = []
-  for group in split(redir . ' END', '\s\|\n')
+  for group in split(s:redir('augroup') . ' END', '\s\|\n')
     call add(keyword_list, { 'word' : group })
   endfor
   return keyword_list
 endfunction"}}}
 function! s:get_mappinglist() abort "{{{
-  " Get mapping list.
-  redir => redir
-  silent! map
-  redir END
-
   let keyword_list = []
-  for line in split(redir, '\n')
+  for line in split(s:redir('map'), '\n')
     let map = matchstr(line, '^\a*\s*\zs\S\+')
     if map !~ '^<' || map =~ '^<SNR>'
       continue
@@ -631,8 +608,6 @@ function! s:get_mappinglist() abort "{{{
   return keyword_list
 endfunction"}}}
 function! s:get_envlist() abort "{{{
-  " Get environment variable list.
-
   let keyword_list = []
   for line in split(system('set'), '\n')
     let word = '$' . toupper(matchstr(line, '^\h\w*'))
@@ -806,6 +781,17 @@ function! s:check_global_candidates(key) abort "{{{
   endif
 
   return !has_key(s:global_candidates_list, a:key)
+endfunction"}}}
+function! s:redir(command) abort "{{{
+  if exists('*execute')
+    return execute(a:command)
+  endif
+
+  redir => r
+  execute 'silent!' a:command
+  redir END
+
+  return r
 endfunction"}}}
 
 let &cpo = s:save_cpo
