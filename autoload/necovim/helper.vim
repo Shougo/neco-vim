@@ -377,65 +377,6 @@ function! s:get_script_candidates(bufnumber) abort "{{{
         \ 'dictionary_variables' : dictionary_variable_dict }
 endfunction"}}}
 
-function! s:make_cache_completion_from_dict(dict_name) abort "{{{
-  let dict_files = split(globpath(&runtimepath,
-        \ 'autoload/necovim/'.a:dict_name.'.dict'), '\n')
-  if empty(dict_files)
-    return {}
-  endif
-
-  let keyword_dict = {}
-  for line in readfile(dict_files[0])
-    let word = matchstr(line, '^[[:alnum:]_\[\]]\+')
-    let completion = matchstr(line[len(word):], '\h\w*')
-    if completion != ''
-      if word =~ '\['
-        let [word_head, word_tail] = split(word, '\[')
-        let word_tail = ' ' . substitute(word_tail, '\]', '', '')
-      else
-        let word_head = word
-        let word_tail = ' '
-      endif
-
-      for i in range(len(word_tail))
-        let keyword_dict[word_head . word_tail[1:i]] = completion
-      endfor
-    endif
-  endfor
-
-  return keyword_dict
-endfunction"}}}
-function! s:make_cache_prototype_from_dict(dict_name) abort "{{{
-  let dict_files = split(globpath(&runtimepath,
-        \ 'autoload/necovim/'.a:dict_name.'.dict'), '\n')
-  if empty(dict_files)
-    return {}
-  endif
-  if a:dict_name == 'functions'
-    let pattern = '^[[:alnum:]_]\+('
-  else
-    let pattern = '^[[:alnum:]_\[\](]\+'
-  endif
-
-  let keyword_dict = {}
-  for line in readfile(dict_files[0])
-    let word = matchstr(line, pattern)
-    let rest = line[len(word):]
-    if word =~ '\['
-      let [word_head, word_tail] = split(word, '\[')
-      let word_tail = ' ' . substitute(word_tail, '\]', '', '')
-    else
-      let word_head = word
-      let word_tail = ' '
-    endif
-
-    for i in range(len(word_tail))
-      let keyword_dict[word_head . word_tail[1:i]] = rest
-    endfor
-  endfor
-
-  return keyword_dict
-endfunction"}}}
 function! s:make_cache_options() abort "{{{
   let options = map(filter(split(s:redir('set all'), '\s\{2,}\|\n')[1:],
         \ "!empty(v:val) && v:val =~ '^\\h\\w*=\\?'"),
@@ -554,8 +495,10 @@ function! s:make_cache_autocmds() abort "{{{
 endfunction"}}}
 
 function! s:get_cmdlist() abort "{{{
-  return map(split(s:redir('command'), '\n')[1:], "
-        \ { 'word' : matchstr(v:val, '\\u\\w*'), 'kind' : 'c' }")
+  let list = exists('*getcompletion') ?
+        \ getcompletion('', 'command') :
+        \ split(s:redir('command'), '\n')[1:]
+  return s:make_completion_list(list)
 endfunction"}}}
 function! s:get_variablelist(dict, prefix) abort "{{{
   let kind_dict =
@@ -590,11 +533,10 @@ function! s:get_functionlist() abort "{{{
   return values(keyword_dict)
 endfunction"}}}
 function! s:get_augrouplist() abort "{{{
-  let keyword_list = []
-  for group in split(s:redir('augroup') . ' END', '\s\|\n')
-    call add(keyword_list, { 'word' : group })
-  endfor
-  return keyword_list
+  let list = exists('*getcompletion') ?
+        \ getcompletion('', 'augroup') :
+        \ split(s:redir('augroup') . ' END', '\s\|\n')
+  return s:make_completion_list(list)
 endfunction"}}}
 function! s:get_mappinglist() abort "{{{
   let keyword_list = []
@@ -615,6 +557,7 @@ function! s:get_envlist() abort "{{{
   endfor
   return keyword_list
 endfunction"}}}
+
 function! s:make_completion_list(list) abort "{{{
   return map(copy(a:list), "{ 'word' : v:val }")
 endfunction"}}}
@@ -792,6 +735,10 @@ function! s:redir(command) abort "{{{
   redir END
 
   return r
+endfunction"}}}
+function! s:getcompletion(complete) abort "{{{
+  return exists('*getcompletion') ?
+        \ s:make_completion_list() : []
 endfunction"}}}
 
 let &cpo = s:save_cpo
