@@ -27,8 +27,6 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Global options definition. "{{{
-let g:necovim#complete_functions =
-      \ get(g:, 'necovim#complete_functions', {})
 let g:necovim#keyword_pattern =
       \ get(g:, 'necovim#keyword_pattern',
       \'-\h[[:alnum:]-]*=\?\|\c\[:\%(\h\w*:\]\)\?\|&\h[[:alnum:]_:]*\|'.
@@ -69,46 +67,39 @@ function! necovim#gather_candidates(input, complete_str) abort "{{{
   elseif a:complete_str =~# '^&\%([gl]:\)\?'
     " Options.
     let prefix = matchstr(a:complete_str, '^&\%([gl]:\)\?')
-    let list = deepcopy(
-          \ necovim#helper#option(
-          \   cur_text, a:complete_str))
+    let list = deepcopy(necovim#helper#option(cur_text, a:complete_str))
     for keyword in list
-      let keyword.word =
-            \ prefix . keyword.word
+      let keyword.word = prefix . keyword.word
     endfor
   elseif a:complete_str =~? '^\c<sid>'
     " SID functions.
     let prefix = matchstr(a:complete_str, '^\c<sid>')
     let complete_str = substitute(
           \ a:complete_str, '^\c<sid>', 's:', '')
-    let list = deepcopy(
-          \ necovim#helper#function(
-          \     cur_text, complete_str))
+    let list = deepcopy(necovim#helper#function(cur_text, complete_str))
     for keyword in list
       let keyword.word = prefix . keyword.word[2:]
       let keyword.abbr = prefix .
             \ get(keyword, 'abbr', keyword.word)[2:]
     endfor
+  elseif cur_text =~# '\<autocmd\S'
+    let list = necovim#helper#autocmd(cur_text, a:complete_str)
+  elseif cur_text =~# '\<command\S'
+    let list = necovim#helper#command_args(cur_text, a:complete_str)
+  elseif cur_text =~# '\<let\S'
+    let list = necovim#helper#let(cur_text, a:complete_str)
   elseif cur_text =~# '\<has([''"]\w*$'
     " Features.
-    let list = necovim#helper#feature(
-          \ cur_text, a:complete_str)
+    let list = necovim#helper#feature(cur_text, a:complete_str)
   elseif cur_text =~# '\<expand([''"][<>[:alnum:]]*$'
     " Expand.
-    let list = necovim#helper#expand(
-          \ cur_text, a:complete_str)
+    let list = necovim#helper#expand(cur_text, a:complete_str)
   elseif a:complete_str =~ '^\$'
     " Environment.
-    let list = necovim#helper#environment(
-          \ cur_text, a:complete_str)
-  elseif cur_text =~ '^[[:digit:],[:space:][:tab:]$''<>]*!\s*\f\+$'
-    " Shell commands.
-    let list = necovim#helper#shellcmd(
-          \ cur_text, a:complete_str)
+    let list = necovim#helper#environment(cur_text, a:complete_str)
   else
     " Commands.
-    let list = necovim#helper#command(
-          \ cur_text, a:complete_str)
+    let list = necovim#helper#command(cur_text, a:complete_str)
   endif
 
   return list
