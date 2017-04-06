@@ -1,30 +1,8 @@
 "=============================================================================
 " FILE: helper.vim
 " AUTHOR:  Shougo Matsushita <Shougo.Matsu@gmail.com>
-" License: MIT license  {{{
-"     Permission is hereby granted, free of charge, to any person obtaining
-"     a copy of this software and associated documentation files (the
-"     "Software"), to deal in the Software without restriction, including
-"     without limitation the rights to use, copy, modify, merge, publish,
-"     distribute, sublicense, and/or sell copies of the Software, and to
-"     permit persons to whom the Software is furnished to do so, subject to
-"     the following conditions:
-"
-"     The above copyright notice and this permission notice shall be included
-"     in all copies or substantial portions of the Software.
-"
-"     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-"     OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-"     MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-"     IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-"     CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-"     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-"     SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-" }}}
+" License: MIT license
 "=============================================================================
-
-let s:save_cpo = &cpo
-set cpo&vim
 
 if !exists('s:internal_candidates_list')
   let s:internal_candidates_list = {}
@@ -37,29 +15,29 @@ endif
 let s:dictionary_path =
       \ substitute(fnamemodify(expand('<sfile>'), ':h'), '\\', '/', 'g')
 
-function! necovim#helper#make_cache() abort "{{{
+function! necovim#helper#make_cache() abort
   if &filetype !=# 'vim'
     return
   endif
 
   let s:script_candidates_list[bufnr('%')] =
         \ s:get_script_candidates(bufnr('%'))
-endfunction"}}}
+endfunction
 
-function! necovim#helper#augroup(cur_text, complete_str) abort "{{{
+function! necovim#helper#augroup(cur_text, complete_str) abort
   " Make cache.
   if s:check_global_candidates('augroups')
     let s:global_candidates_list.augroups = s:get_augrouplist()
   endif
 
   return copy(s:global_candidates_list.augroups)
-endfunction"}}}
-function! necovim#helper#colorscheme_args(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#colorscheme_args(cur_text, complete_str) abort
   return s:make_completion_list(map(split(
         \ globpath(&runtimepath, 'colors/*.vim'), '\n'),
         \ 'fnamemodify(v:val, ":t:r")'))
-endfunction"}}}
-function! necovim#helper#command(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#command(cur_text, complete_str) abort
   if a:cur_text == '' ||
         \ a:cur_text =~ '^[[:digit:],[:space:][:tab:]$''<>]*\h\w*$'
     " Commands.
@@ -88,31 +66,31 @@ function! necovim#helper#command(cur_text, complete_str) abort "{{{
   endif
 
   return list
-endfunction"}}}
-function! necovim#helper#environment(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#environment(cur_text, complete_str) abort
   " Make cache.
   if s:check_global_candidates('environments')
     let s:global_candidates_list.environments = s:get_envlist()
   endif
 
   return copy(s:global_candidates_list.environments)
-endfunction"}}}
-function! necovim#helper#expand(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#expand(cur_text, complete_str) abort
   return s:make_completion_list(
         \ ['<cfile>', '<afile>', '<abuf>', '<amatch>',
         \  '<sfile>', '<cword>', '<cWORD>', '<client>'])
-endfunction"}}}
-function! necovim#helper#expression(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#expression(cur_text, complete_str) abort
   return necovim#helper#function(a:cur_text, a:complete_str)
         \+ necovim#helper#var(a:cur_text, a:complete_str)
-endfunction"}}}
-function! necovim#helper#feature(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#feature(cur_text, complete_str) abort
   if !has_key(s:internal_candidates_list, 'features')
     let s:internal_candidates_list.features = s:make_cache_features()
   endif
   return copy(s:internal_candidates_list.features)
-endfunction"}}}
-function! necovim#helper#filetype(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#filetype(cur_text, complete_str) abort
   if !has_key(s:internal_candidates_list, 'filetypes')
     let s:internal_candidates_list.filetypes =
           \ s:make_completion_list(map(
@@ -123,8 +101,8 @@ function! necovim#helper#filetype(cur_text, complete_str) abort "{{{
   endif
 
   return copy(s:internal_candidates_list.filetypes)
-endfunction"}}}
-function! necovim#helper#function(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#function(cur_text, complete_str) abort
   " Make cache.
   if s:check_global_candidates('functions')
     let s:global_candidates_list.functions = s:get_functionlist()
@@ -152,8 +130,8 @@ function! necovim#helper#function(cur_text, complete_str) abort "{{{
   endif
 
   return list
-endfunction"}}}
-function! necovim#helper#let(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#let(cur_text, complete_str) abort
   if a:cur_text !~ '='
     return necovim#helper#var(a:cur_text, a:complete_str)
   elseif a:cur_text =~# '\<let\s\+&\%([lg]:\)\?filetype\s*=\s*'
@@ -162,8 +140,8 @@ function! necovim#helper#let(cur_text, complete_str) abort "{{{
   else
     return necovim#helper#expression(a:cur_text, a:complete_str)
   endif
-endfunction"}}}
-function! necovim#helper#option(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#option(cur_text, complete_str) abort
   " Make cache.
   if !has_key(s:internal_candidates_list, 'options')
     let s:internal_candidates_list.options = s:make_cache_options()
@@ -174,8 +152,8 @@ function! necovim#helper#option(cur_text, complete_str) abort "{{{
   else
     return copy(s:internal_candidates_list.options)
   endif
-endfunction"}}}
-function! necovim#helper#var_dictionary(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#var_dictionary(cur_text, complete_str) abort
   let var_name = matchstr(a:cur_text,
         \'\%(\a:\)\?\h\w*\ze\.\%(\h\w*\%(()\?\)\?\)\?$')
   let list = []
@@ -188,8 +166,8 @@ function! necovim#helper#var_dictionary(cur_text, complete_str) abort "{{{
   endif
 
   return list
-endfunction"}}}
-function! necovim#helper#var(cur_text, complete_str) abort "{{{
+endfunction
+function! necovim#helper#var(cur_text, complete_str) abort
   " Make cache.
   if s:check_global_candidates('variables')
     let s:global_candidates_list.variables =
@@ -210,9 +188,9 @@ function! necovim#helper#var(cur_text, complete_str) abort "{{{
   endif
 
   return list
-endfunction"}}}
+endfunction
 
-function! s:get_local_variables() abort "{{{
+function! s:get_local_variables() abort
   " Get local variable list.
 
   let keyword_dict = {}
@@ -253,15 +231,15 @@ function! s:get_local_variables() abort "{{{
   endwhile
 
   return values(keyword_dict)
-endfunction"}}}
+endfunction
 
-function! s:get_cached_script_candidates() abort "{{{
+function! s:get_cached_script_candidates() abort
   return has_key(s:script_candidates_list, bufnr('%')) ?
         \ s:script_candidates_list[bufnr('%')] : {
         \   'functions' : {}, 'variables' : {},
         \   'function_prototypes' : {}, 'dictionary_variables' : {} }
-endfunction"}}}
-function! s:get_script_candidates(bufnumber) abort "{{{
+endfunction
+function! s:get_script_candidates(bufnumber) abort
   " Get script candidate list.
 
   let function_dict = {}
@@ -296,9 +274,9 @@ function! s:get_script_candidates(bufnumber) abort "{{{
   return { 'functions' : function_dict, 'variables' : variable_dict,
         \ 'function_prototypes' : function_prototypes,
         \ 'dictionary_variables' : dictionary_variable_dict }
-endfunction"}}}
+endfunction
 
-function! s:make_cache_options() abort "{{{
+function! s:make_cache_options() abort
   let options = map(filter(split(s:redir('set all'), '\s\{2,}\|\n')[1:],
         \ "!empty(v:val) && v:val =~ '^\\h\\w*=\\?'"),
         \ "substitute(v:val, '^no\\|=\\zs.*$', '', '')")
@@ -311,8 +289,8 @@ function! s:make_cache_options() abort "{{{
   return map(filter(options, "v:val =~ '^\\h\\w*=\\?'"), "{
         \ 'word' : substitute(v:val, '=$', '', ''), 'kind' : 'o',
         \ }")
-endfunction"}}}
-function! s:make_cache_features() abort "{{{
+endfunction
+function! s:make_cache_features() abort
   let helpfile = expand(findfile('doc/eval.txt', &runtimepath))
 
   if !filereadable(helpfile)
@@ -347,8 +325,8 @@ function! s:make_cache_features() abort "{{{
   endif
 
   return features
-endfunction"}}}
-function! s:make_cache_functions() abort "{{{
+endfunction
+function! s:make_cache_functions() abort
   let helpfile = expand(findfile('doc/eval.txt', &runtimepath))
   if !filereadable(helpfile)
     return []
@@ -369,8 +347,8 @@ function! s:make_cache_functions() abort "{{{
   endfor
 
   return functions
-endfunction"}}}
-function! s:make_cache_commands() abort "{{{
+endfunction
+function! s:make_cache_commands() abort
   let helpfile = expand(findfile('doc/index.txt', &runtimepath))
   if !filereadable(helpfile)
     return []
@@ -391,8 +369,8 @@ function! s:make_cache_commands() abort "{{{
   endfor
 
   return commands
-endfunction"}}}
-function! s:make_cache_autocmds() abort "{{{
+endfunction
+function! s:make_cache_autocmds() abort
   let helpfile = expand(findfile('doc/autocmd.txt', &runtimepath))
   if !filereadable(helpfile)
     return []
@@ -413,23 +391,23 @@ function! s:make_cache_autocmds() abort "{{{
   endfor
 
   return autocmds
-endfunction"}}}
+endfunction
 
-function! s:get_cmdlist() abort "{{{
+function! s:get_cmdlist() abort
   let list = exists('*getcompletion') ?
         \ getcompletion('', 'command') :
         \ split(s:redir('command'), '\n')[1:]
   return s:make_completion_list(list)
-endfunction"}}}
-function! s:get_variablelist(dict, prefix) abort "{{{
+endfunction
+function! s:get_variablelist(dict, prefix) abort
   let kind_dict =
         \ ['0', '""', '()', '[]', '{}', '.', 'b', 'no', 'j', 'ch']
   return values(map(copy(a:dict), "{
         \ 'word' : a:prefix.v:key,
         \ 'kind' : kind_dict[type(v:val)],
         \}"))
-endfunction"}}}
-function! s:get_functionlist() abort "{{{
+endfunction
+function! s:get_functionlist() abort
   let keyword_dict = {}
   let function_prototypes = {}
   for line in split(s:redir('function'), '\n')
@@ -452,14 +430,14 @@ function! s:get_functionlist() abort "{{{
   let s:global_candidates_list.function_prototypes = function_prototypes
 
   return values(keyword_dict)
-endfunction"}}}
-function! s:get_augrouplist() abort "{{{
+endfunction
+function! s:get_augrouplist() abort
   let list = exists('*getcompletion') ?
         \ getcompletion('', 'augroup') :
         \ split(s:redir('augroup') . ' END', '\s\|\n')
   return s:make_completion_list(list)
-endfunction"}}}
-function! s:get_mappinglist() abort "{{{
+endfunction
+function! s:get_mappinglist() abort
   let keyword_list = []
   for line in split(s:redir('map'), '\n')
     let map = matchstr(line, '^\a*\s*\zs\S\+')
@@ -469,20 +447,20 @@ function! s:get_mappinglist() abort "{{{
     call add(keyword_list, { 'word' : map })
   endfor
   return keyword_list
-endfunction"}}}
-function! s:get_envlist() abort "{{{
+endfunction
+function! s:get_envlist() abort
   let keyword_list = []
   for line in split(system('set'), '\n')
     let word = '$' . toupper(matchstr(line, '^\h\w*'))
     call add(keyword_list, { 'word' : word, 'kind' : 'e' })
   endfor
   return keyword_list
-endfunction"}}}
+endfunction
 
-function! s:make_completion_list(list) abort "{{{
+function! s:make_completion_list(list) abort
   return map(copy(a:list), "{ 'word' : v:val }")
-endfunction"}}}
-function! s:analyze_function_line(line, keyword_dict, prototype) abort "{{{
+endfunction
+function! s:analyze_function_line(line, keyword_dict, prototype) abort
   " Get script function.
   let line = substitute(matchstr(a:line,
         \ '\<fu\%[nction]!\?\s\+\zs.*)'), '".*$', '', '')
@@ -494,8 +472,8 @@ function! s:analyze_function_line(line, keyword_dict, prototype) abort "{{{
           \}
     let a:prototype[word] = orig_line[len(word):]
   endif
-endfunction"}}}
-function! s:analyze_variable_line(line, keyword_dict) abort "{{{
+endfunction
+function! s:analyze_variable_line(line, keyword_dict) abort
   if a:line =~ '\<\%(let\|for\)\s\+\a[[:alnum:]_:]*'
     " let var = pattern.
     let word = matchstr(a:line, '\<\%(let\|for\)\s\+\zs\a[[:alnum:]_:]*')
@@ -554,8 +532,8 @@ function! s:analyze_variable_line(line, keyword_dict) abort "{{{
         endfor
       endif
     endif
-endfunction"}}}
-function! s:analyze_dictionary_variable_line(line, keyword_dict, var_name) abort "{{{
+endfunction
+function! s:analyze_dictionary_variable_line(line, keyword_dict, var_name) abort
   let let_pattern = '\<let\s\+'.a:var_name.'\.\h\w*'
   let call_pattern = '\<call\s\+'.a:var_name.'\.\h\w*()\?'
 
@@ -577,22 +555,22 @@ function! s:analyze_dictionary_variable_line(line, keyword_dict, var_name) abort
     " Update kind.
     let a:keyword_dict[word].kind = kind
   endif
-endfunction"}}}
-function! s:split_args(cur_text, complete_str) abort "{{{
+endfunction
+function! s:split_args(cur_text, complete_str) abort
   let args = split(a:cur_text)
   if a:complete_str == ''
     call add(args, '')
   endif
 
   return args
-endfunction"}}}
+endfunction
 
-" Initialize return types. "{{{
-function! s:set_dictionary_helper(variable, keys, value) abort "{{{
+" Initialize return types.
+function! s:set_dictionary_helper(variable, keys, value) abort
   for key in split(a:keys, ',')
     let a:variable[key] = a:value
   endfor
-endfunction"}}}
+endfunction
 let s:function_return_types = {}
 call s:set_dictionary_helper(
       \ s:function_return_types,
@@ -606,8 +584,8 @@ call s:set_dictionary_helper(
       \ s:function_return_types,
       \ 'expand,filter,sort,split',
       \ '[]')
-"}}}
-function! s:get_variable_type(expression) abort "{{{
+
+function! s:get_variable_type(expression) abort
   " Analyze variable type.
   if a:expression =~ '^\%(\s*+\)\?\s*\d\+\.\d\+'
     return '.'
@@ -628,25 +606,25 @@ function! s:get_variable_type(expression) abort "{{{
   else
     return ''
   endif
-endfunction"}}}
+endfunction
 
-function! s:set_dictionary_helper(variable, keys, pattern) abort "{{{
+function! s:set_dictionary_helper(variable, keys, pattern) abort
   for key in split(a:keys, '\s*,\s*')
     if !has_key(a:variable, key)
       let a:variable[key] = a:pattern
     endif
   endfor
-endfunction"}}}
+endfunction
 
-function! s:check_global_candidates(key) abort "{{{
+function! s:check_global_candidates(key) abort
   if s:global_candidates_list.runtimepath !=# &runtimepath
     let s:global_candidates_list.runtimepath = &runtimepath
     return 1
   endif
 
   return !has_key(s:global_candidates_list, a:key)
-endfunction"}}}
-function! s:redir(command) abort "{{{
+endfunction
+function! s:redir(command) abort
   if exists('*execute')
     return execute(a:command)
   endif
@@ -656,7 +634,7 @@ function! s:redir(command) abort "{{{
   redir END
 
   return r
-endfunction"}}}
+endfunction
 
 function! s:has_cmdline() abort
   if !exists('*getcompletion')
@@ -693,8 +671,3 @@ function! s:uniq_by(list, f) abort
   endwhile
   return map(list, 'v:val[0]')
 endfunction
-
-let &cpo = s:save_cpo
-unlet s:save_cpo
-
-" vim: foldmethod=marker
