@@ -46,53 +46,6 @@ function! necovim#helper#make_cache() abort "{{{
         \ s:get_script_candidates(bufnr('%'))
 endfunction"}}}
 
-function! necovim#helper#autocmd_args(cur_text, complete_str) abort "{{{
-  let args = s:split_args(a:cur_text, a:complete_str)
-  if len(args) < 2
-    return []
-  endif
-
-  " Make cache.
-  if s:check_global_candidates('augroups')
-    let s:global_candidates_list.augroups = s:get_augrouplist()
-  endif
-  if !has_key(s:internal_candidates_list, 'autocmds')
-    let s:internal_candidates_list.autocmds = s:make_cache_autocmds()
-  endif
-
-  let list = []
-  if len(args) == 2
-    let list += copy(s:global_candidates_list.augroups) +
-          \ copy(s:internal_candidates_list.autocmds)
-  elseif len(args) == 3
-    if args[1] ==# 'FileType'
-      " Filetype completion.
-      let list +=
-            \ necovim#helper#filetype(
-            \   a:cur_text, a:complete_str)
-    endif
-
-    let list += s:internal_candidates_list.autocmds
-  elseif len(args) == 4
-    if args[2] ==# 'FileType'
-      " Filetype completion.
-      let list += necovim#helper#filetype(
-            \ a:cur_text, a:complete_str)
-    endif
-
-    let list += necovim#helper#command(
-          \ args[3], a:complete_str)
-    let list += s:make_completion_list(['nested'])
-  else
-    let command = args[3] =~ '^*' ?
-          \ join(args[4:]) : join(args[3:])
-    let list += necovim#helper#command(
-          \ command, a:complete_str)
-    let list += s:make_completion_list(['nested'])
-  endif
-
-  return list
-endfunction"}}}
 function! necovim#helper#augroup(cur_text, complete_str) abort "{{{
   " Make cache.
   if s:check_global_candidates('augroups')
@@ -126,24 +79,15 @@ function! necovim#helper#command(cur_text, complete_str) abort "{{{
 
     " Expression.
     let list = necovim#helper#expression(a:cur_text, a:complete_str)
+
+    if s:has_cmdline()
+      let list += s:make_completion_list(
+            \ getcompletion(a:cur_text, 'cmdline'))
+      let list = s:uniq_by(list, 'v:val.word')
+    endif
   endif
 
   return list
-endfunction"}}}
-function! necovim#helper#command_args(cur_text, complete_str) abort "{{{
-  " Make cache.
-  if !has_key(s:internal_candidates_list, 'command_args')
-    let s:internal_candidates_list.command_args =
-          \ s:make_completion_list(
-          \   readfile(s:dictionary_path . '/command_args.dict'))
-    let s:internal_candidates_list.command_replaces =
-          \ s:make_completion_list(
-        \ ['<line1>', '<line2>', '<count>', '<bang>',
-        \  '<reg>', '<args>', '<lt>', '<q-args>', '<f-args>'])
-  endif
-
-  return s:internal_candidates_list.command_args +
-        \ s:internal_candidates_list.command_replaces
 endfunction"}}}
 function! necovim#helper#environment(cur_text, complete_str) abort "{{{
   " Make cache.
@@ -218,29 +162,6 @@ function! necovim#helper#let(cur_text, complete_str) abort "{{{
   else
     return necovim#helper#expression(a:cur_text, a:complete_str)
   endif
-endfunction"}}}
-function! necovim#helper#mapping(cur_text, complete_str) abort "{{{
-  " Make cache.
-  if s:check_global_candidates('mappings')
-    let s:global_candidates_list.mappings = s:get_mappinglist()
-  endif
-  if !has_key(s:internal_candidates_list, 'mappings')
-    let s:internal_candidates_list.mappings =
-          \ s:make_completion_list(
-          \   readfile(s:dictionary_path . '/mappings.dict'))
-  endif
-
-  let list = copy(s:internal_candidates_list.mappings) +
-        \ copy(s:global_candidates_list.mappings)
-
-  if a:cur_text =~ '<expr>'
-    let list += necovim#helper#expression(a:cur_text, a:complete_str)
-  elseif a:cur_text =~ ':<C-u>\?'
-    let command = matchstr(a:cur_text, ':<C-u>\?\zs.*$')
-    let list += necovim#helper#command(command, a:complete_str)
-  endif
-
-  return list
 endfunction"}}}
 function! necovim#helper#option(cur_text, complete_str) abort "{{{
   " Make cache.
@@ -736,10 +657,42 @@ function! s:redir(command) abort "{{{
 
   return r
 endfunction"}}}
-function! s:getcompletion(complete) abort "{{{
-  return exists('*getcompletion') ?
-        \ s:make_completion_list() : []
-endfunction"}}}
+
+function! s:has_cmdline() abort
+  if !exists('*getcompletion')
+    return 0
+  endif
+
+  try
+    call getcompletion('', 'cmdline')
+  catch
+    return 0
+  endtry
+
+  return 1
+endfunction
+
+" Removes duplicates from a list.
+function! s:uniq(list) abort
+  return s:uniq_by(a:list, 'v:val')
+endfunction
+
+" Removes duplicates from a list.
+function! s:uniq_by(list, f) abort
+  let list = map(copy(a:list), printf('[v:val, %s]', a:f))
+  let i = 0
+  let seen = {}
+  while i < len(list)
+    let key = string(list[i][1])
+    if has_key(seen, key)
+      call remove(list, i)
+    else
+      let seen[key] = 1
+      let i += 1
+    endif
+  endwhile
+  return map(list, 'v:val[0]')
+endfunction
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

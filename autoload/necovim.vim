@@ -29,7 +29,7 @@ set cpo&vim
 " Global options definition. "{{{
 let g:necovim#keyword_pattern =
       \ get(g:, 'necovim#keyword_pattern',
-      \'-\h[[:alnum:]-]*=\?\|\c\[:\%(\h\w*:\]\)\?\|&\h[[:alnum:]_:]*\|'.
+      \'\h[[:alnum:]-]*=\?\|\c\[:\%(\h\w*:\]\)\?\|&\h[[:alnum:]_:]*\|'.
       \'<SID>\%(\h\w*\)\?\|<Plug>([^)]*)\?'.
       \'\|<\h[[:alnum:]_-]*>\?\|\h[[:alnum:]_:#]*[!(]\?\|$\h\w*')
 "}}}
@@ -82,10 +82,6 @@ function! necovim#gather_candidates(input, complete_str) abort "{{{
       let keyword.abbr = prefix .
             \ get(keyword, 'abbr', keyword.word)[2:]
     endfor
-  elseif cur_text =~# '\<autocmd\S'
-    let list = necovim#helper#autocmd(cur_text, a:complete_str)
-  elseif cur_text =~# '\<command\S'
-    let list = necovim#helper#command_args(cur_text, a:complete_str)
   elseif cur_text =~# '\<let\S'
     let list = necovim#helper#let(cur_text, a:complete_str)
   elseif cur_text =~# '\<has([''"]\w*$'
