@@ -60,7 +60,7 @@ function! necovim#gather_candidates(input, complete_str) abort
       let keyword.abbr = prefix .
             \ get(keyword, 'abbr', keyword.word)[2:]
     endfor
-  elseif cur_text =~# '\<let\S'
+  elseif cur_text =~# '\<let\s'
     let list = necovim#helper#let(cur_text, a:complete_str)
   elseif cur_text =~# '\<has([''"]\w*$'
     " Features.
