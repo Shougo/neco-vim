@@ -59,9 +59,13 @@ function! necovim#helper#command(cur_text, complete_str) abort
     let list = necovim#helper#expression(a:cur_text, a:complete_str)
 
     if s:has_cmdline()
-      let list += s:make_completion_list(
-            \ getcompletion(a:cur_text, 'cmdline'))
-      let list = s:uniq_by(list, 'v:val.word')
+      try
+        let list += s:make_completion_list(
+              \ getcompletion(a:cur_text, 'cmdline'))
+        let list = s:uniq_by(list, 'v:val.word')
+      catch
+        " Ignore getcompletion() error
+      endtry
     endif
   endif
 
