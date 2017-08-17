@@ -42,6 +42,8 @@ function! necovim#gather_candidates(input, complete_str) abort
     let complete_str = matchstr(cur_text, '.\%(\h\w*\)\?$')
     return necovim#helper#var_dictionary(
           \ cur_text, complete_str)
+  elseif cur_text =~# '\<set\%(l\%[ocal]\|g\%[lobal]\)\?\s'
+    let list = necovim#helper#option(cur_text, a:complete_str)
   elseif a:complete_str =~# '^&\%([gl]:\)\?'
     " Options.
     let prefix = matchstr(a:complete_str, '^&\%([gl]:\)\?')
