@@ -14,16 +14,14 @@ let s:source = {
       \ 'input_pattern' : '\.\w*',
       \}
 
-function! s:source.get_complete_position(context) abort "{{{
+function! s:source.get_complete_position(context) abort
   return necovim#get_complete_position(a:context.input)
-endfunction"}}}
+endfunction
 
-function! s:source.gather_candidates(context) abort "{{{
+function! s:source.gather_candidates(context) abort
   return necovim#gather_candidates(a:context.input, a:context.complete_str)
-endfunction"}}}
+endfunction
 
-function! neocomplete#sources#vim#define() abort "{{{
+function! neocomplete#sources#vim#define() abort
   return s:source
-endfunction"}}}
-
-" vim: foldmethod=marker
+endfunction

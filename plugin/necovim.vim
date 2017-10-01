@@ -21,6 +21,3 @@ augroup necovim
 augroup END
 
 let g:loaded_necovim = 1
-
-" __END__
-" vim: foldmethod=marker
