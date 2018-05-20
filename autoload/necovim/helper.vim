@@ -398,7 +398,9 @@ function! s:make_cache_autocmds() abort
 endfunction
 
 function! s:get_cmdlist() abort
-  let list = exists('*getcompletion') ?
+  let list = exists('*nvim_get_commands') ?
+        \ keys(nvim_get_commands({'builtin': v:false})) :
+        \ exists('*getcompletion') ?
         \ getcompletion('', 'command') :
         \ split(s:redir('command'), '\n')[1:]
   return s:make_completion_list(list)
