@@ -62,14 +62,13 @@ function! necovim#helper#command(cur_text, complete_str) abort
       try
         let list += s:make_completion_list(
               \ getcompletion(a:cur_text, 'cmdline'))
-        let list = s:uniq_by(list, 'v:val.word')
       catch
         " Ignore getcompletion() error
       endtry
     endif
   endif
 
-  return list
+  return s:uniq_by(list, 'v:val.word')
 endfunction
 function! necovim#helper#environment(cur_text, complete_str) abort
   " Make cache.
