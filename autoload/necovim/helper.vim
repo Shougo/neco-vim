@@ -407,10 +407,17 @@ endfunction
 function! s:get_variablelist(dict, prefix) abort
   let kind_dict =
         \ ['0', '""', '()', '[]', '{}', '.', 'b', 'no', 'j', 'ch']
-  return values(map(copy(a:dict), "{
-        \ 'word' : a:prefix.v:key,
-        \ 'kind' : kind_dict[type(v:val)],
-        \}"))
+
+  let list = []
+  for [key, Val] in items(a:dict)
+    let kind = '?'
+    silent! let kind = kind_dict[type(Val)]
+    call add(list, {
+          \ 'word' : a:prefix . key,
+          \ 'kind' : kind,
+          \ })
+  endfor
+  return list
 endfunction
 function! s:get_functionlist() abort
   let keyword_dict = {}
