@@ -305,13 +305,13 @@ function! s:make_cache_features() abort
   let start = match(lines,
         \ ((v:version > 704 || v:version == 704 && has('patch11')) ?
         \   'acl' : '^all_builtin_terms'))
-  let end = match(lines, '^x11')
+  let end = match(lines, has('nvim') ? '^wsl' : '^x11')
   for l in lines[start : end]
     let _ = matchlist(l, '^\(\k\+\)\t\+\(.\+\)$')
     if !empty(_)
       call add(features, {
             \ 'word' : _[1],
-            \ 'menu' : '; ' . _[2],
+            \ 'info' : _[2],
             \ })
     endif
   endfor
@@ -345,6 +345,7 @@ function! s:make_cache_functions() abort
       call insert(functions, {
             \ 'word' : substitute(func, '(\zs.\+)', '', ''),
             \ 'abbr' : substitute(func, '(\zs\s\+', '', ''),
+            \ 'info' : substitute(lines[i], '\t', ' ', 'g'),
             \ })
     endif
   endfor
@@ -363,37 +364,16 @@ function! s:make_cache_commands() abort
   let end = match(lines, '^|:\~|', start)
   for lnum in range(end, start, -1)
     let desc = substitute(lines[lnum], '^\s\+\ze', '', 'g')
-    let _ = matchlist(desc, '^|:\(.\{-}\)|\s\+\S\+')
+    let _ = matchlist(desc, '^|:\(.\{-}\)|\s\+\S\+\s\+\(.*\)$')
     if !empty(_)
       call add(commands, {
             \ 'word' : _[1], 'kind' : 'c',
+            \ 'info': _[2],
             \ })
     endif
   endfor
 
   return commands
-endfunction
-function! s:make_cache_autocmds() abort
-  let helpfile = expand(findfile('doc/autocmd.txt', &runtimepath))
-  if !filereadable(helpfile)
-    return []
-  endif
-
-  let lines = readfile(helpfile)
-  let autocmds = []
-  let start = match(lines, '^|BufNewFile|')
-  let end = match(lines, '^|User|', start)
-  let desc = ''
-  for lnum in range(end, start, -1)
-    let desc = substitute(lines[lnum], '^\s\+\ze', '', 'g') . ' ' . desc
-    let _ = matchlist(desc, '^|\(.\{-}\)|\s\+\S\+')
-    if !empty(_)
-      call add(autocmds, { 'word' : _[1], })
-      let desc = ''
-    endif
-  endfor
-
-  return autocmds
 endfunction
 
 function! s:get_cmdlist() abort
