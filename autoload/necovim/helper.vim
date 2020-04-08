@@ -178,13 +178,13 @@ function! necovim#helper#var(cur_text, complete_str) abort
           \ + s:make_completion_list(['v:val'])
   endif
 
-  if a:complete_str =~ '^[swtb]:'
+  if a:complete_str =~# '^[swtb]:'
     let list = values(s:get_cached_script_candidates().variables)
-    if a:complete_str !~ '^s:'
+    if a:complete_str !~# '^s:'
       let prefix = matchstr(a:complete_str, '^[swtb]:')
       let list += s:get_variablelist(eval(prefix), prefix)
     endif
-  elseif a:complete_str =~ '^[vg]:'
+  elseif a:complete_str =~# '^[vg]:'
     let list = copy(s:global_candidates_list.variables)
   else
     let list = s:get_local_variables()
