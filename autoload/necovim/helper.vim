@@ -56,7 +56,9 @@ function! necovim#helper#command(cur_text, complete_str) abort
     " Commands args.
 
     " Expression.
-    let list = necovim#helper#expression(a:cur_text, a:complete_str)
+    " Note: In command line window, expression completion should be disabled.
+    let list = bufname('%') ==# '[Command Line]' ? [] :
+          \ necovim#helper#expression(a:cur_text, a:complete_str)
 
     if s:has_cmdline()
       try
