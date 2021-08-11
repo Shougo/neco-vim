@@ -49,7 +49,7 @@ g:necovim#complete_functions
 ==============================================================================
 FAQ						*necovim-faq*
 
-Q. How to enable eskk the completion in ddc.vim?
+Q. How to enable neco-vim the completion in ddc.vim?
 
 A.
 >
