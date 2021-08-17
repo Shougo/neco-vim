@@ -70,7 +70,9 @@ function! necovim#helper#command(cur_text, complete_str) abort
     endif
   endif
 
-  return s:uniq_by(list, 'v:val.word')
+  " Filter by complete_str to reduce candidates
+  return filter(s:uniq_by(list, 'v:val.word'),
+        \ 'stridx(v:val.word, a:complete_str) == 0')
 endfunction
 function! necovim#helper#environment(cur_text, complete_str) abort
   " Make cache.
