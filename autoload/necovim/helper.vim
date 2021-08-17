@@ -71,8 +71,9 @@ function! necovim#helper#command(cur_text, complete_str) abort
   endif
 
   " Filter by complete_str to reduce candidates
+  let prefix = a:complete_str[:1]
   return filter(s:uniq_by(list, 'v:val.word'),
-        \ 'stridx(v:val.word, a:complete_str) == 0')
+        \ 'stridx(v:val.word, prefix) == 0')
 endfunction
 function! necovim#helper#environment(cur_text, complete_str) abort
   " Make cache.
