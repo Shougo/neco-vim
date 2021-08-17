@@ -38,6 +38,11 @@ function! necovim#helper#colorscheme_args(cur_text, complete_str) abort
         \ 'fnamemodify(v:val, ":t:r")'))
 endfunction
 function! necovim#helper#command(cur_text, complete_str) abort
+  if a:complete_str == ''
+    " Disable for huge candidates
+    return []
+  endif
+
   if a:cur_text == '' ||
         \ a:cur_text =~ '^[[:digit:],[:space:][:tab:]$''<>]*\h\w*$'
     " Commands.
