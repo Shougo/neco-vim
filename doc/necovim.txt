@@ -1,4 +1,4 @@
-*necovim.txt*	Vim source for neocomplete/deoplete.
+*necovim.txt*	Vim source for neocomplete/deoplete/ddc.
 
 Version: 0.1
 Author: Shougo <Shougo.Matsu at gmail.com>
