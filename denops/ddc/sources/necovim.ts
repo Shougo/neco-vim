@@ -17,7 +17,7 @@ export class Source extends BaseSource {
     _sourceOptions: SourceOptions,
     _sourceParams: Record<string, unknown>,
   ): Promise<number> {
-    return denops.call('necovim#get_complete_position', context.input);
+    return await denops.call('necovim#get_complete_position', context.input) as number;
   }
 
   async gatherCandidates(
@@ -28,7 +28,7 @@ export class Source extends BaseSource {
     _sourceParams: Record<string, unknown>,
     completeStr: string,
   ): Promise<Candidate[]> {
-    return denops.call(
-        'necovim#gather_candidates', context.input, completeStr);
+    return await denops.call(
+        'necovim#gather_candidates', context.input, completeStr) as Candidate[];
   }
 }
