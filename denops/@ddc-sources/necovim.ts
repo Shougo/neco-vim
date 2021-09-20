@@ -2,10 +2,10 @@ import {
   BaseSource,
   Candidate,
   Context,
-} from "https://deno.land/x/ddc_vim@v0.3.0/types.ts";
-import { Denops } from "https://deno.land/x/ddc_vim@v0.3.0/deps.ts";
+} from "https://deno.land/x/ddc_vim@v0.13.0/types.ts";
+import { Denops } from "https://deno.land/x/ddc_vim@v0.13.0/deps.ts";
 
-export class Source extends BaseSource {
+export class Source extends BaseSource<{}> {
   isBytePos = true;
 
   async getCompletePosition(args: {
@@ -25,4 +25,6 @@ export class Source extends BaseSource {
         'necovim#gather_candidates',
         args.context.input, args.completeStr) as Candidate[];
   }
+
+  params(): {} { return {}; }
 }
