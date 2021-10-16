@@ -25,7 +25,7 @@ function! necovim#get_complete_position(input) abort
 
   let [complete_pos, complete_str] =
         \ necovim#match_word(a:input, pattern)
-  if complete_pos < 0
+  if a:input =~# '\<e\%[dit]\s' || complete_pos < 0
     " Use args pattern.
     let [complete_pos, complete_str] =
           \ necovim#match_word(a:input, '\S\+$')
