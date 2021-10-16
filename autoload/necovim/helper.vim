@@ -67,8 +67,12 @@ function! necovim#helper#command(cur_text, complete_str) abort
 
     if s:has_cmdline()
       try
-        let list += s:make_completion_list(
-              \ getcompletion(a:cur_text, 'cmdline'))
+        " Note: Convert "~/"
+        let completions = map(getcompletion(a:cur_text, 'cmdline'),
+              \ "a:complete_str =~# '^\\~/' ? fnamemodify(v:val, ':~')
+              \  : v:val"
+              \ )
+        let list += s:make_completion_list(completions)
       catch
         " Ignore getcompletion() error
       endtry
@@ -460,7 +464,10 @@ function! s:get_envlist() abort
 endfunction
 
 function! s:make_completion_list(list) abort
-  return map(copy(a:list), "{ 'word' : v:val }")
+  return map(copy(a:list), "v:val !=# '' && v:val[-1:] ==# '/' ?
+        \  { 'word' : v:val[:-2], 'abbr': v:val } :
+        \  { 'word' : v:val }
+        \ ")
 endfunction
 function! s:analyze_function_line(line, keyword_dict, prototype) abort
   " Get script function.
