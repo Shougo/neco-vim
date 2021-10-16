@@ -15,7 +15,7 @@ let g:necovim#keyword_pattern =
 function! necovim#get_complete_position(input) abort
   let cur_text = necovim#get_cur_text(a:input)
 
-  if cur_text =~ '^\s*"'
+  if cur_text =~# '^\s*"'
     " Comment.
     return -1
   endif
@@ -37,7 +37,7 @@ endfunction
 function! necovim#gather_candidates(input, complete_str) abort
   let cur_text = necovim#get_cur_text(a:input)
 
-  if cur_text =~ '\h\w*\.\%(\h\w*\)\?$'
+  if cur_text =~# '\h\w*\.\%(\h\w*\)\?$'
     " Dictionary.
     let complete_str = matchstr(cur_text, '.\%(\h\w*\)\?$')
     return necovim#helper#var_dictionary(
@@ -70,7 +70,7 @@ function! necovim#gather_candidates(input, complete_str) abort
   elseif cur_text =~# '\<expand([''"][<>[:alnum:]]*$'
     " Expand.
     let list = necovim#helper#expand(cur_text, a:complete_str)
-  elseif a:complete_str =~ '^\$'
+  elseif a:complete_str =~# '^\$'
     " Environment.
     let list = necovim#helper#environment(cur_text, a:complete_str)
   else
@@ -83,14 +83,14 @@ endfunction
 
 function! necovim#get_cur_text(input) abort
   let cur_text = a:input
-  if &filetype == 'vimshell' && exists('*vimshell#get_secondary_prompt')
+  if &filetype ==# 'vimshell' && exists('*vimshell#get_secondary_prompt')
         \   && empty(b:vimshell.continuation)
     return cur_text[len(vimshell#get_secondary_prompt()) :]
   endif
 
   let line = line('.')
   let cnt = 0
-  while cur_text =~ '^\s*\\' && line > 1 && cnt < 5
+  while cur_text =~# '^\s*\\' && line > 1 && cnt < 5
     let cur_text = getline(line - 1) .
           \ substitute(cur_text, '^\s*\\', '', '')
     let line -= 1

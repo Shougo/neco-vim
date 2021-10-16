@@ -38,13 +38,13 @@ function! necovim#helper#colorscheme_args(cur_text, complete_str) abort
         \ 'fnamemodify(v:val, ":t:r")'))
 endfunction
 function! necovim#helper#command(cur_text, complete_str) abort
-  if a:complete_str == ''
+  if a:complete_str ==# ''
     " Disable for huge candidates
     return []
   endif
 
-  if a:cur_text == '' ||
-        \ a:cur_text =~ '^[[:digit:],[:space:][:tab:]$''<>]*\h\w*$'
+  if a:cur_text ==# '' ||
+        \ a:cur_text =~# '^[[:digit:],[:space:][:tab:]$''<>]*\h\w*$'
     " Commands.
 
     " Make cache.
@@ -125,9 +125,9 @@ function! necovim#helper#function(cur_text, complete_str) abort
   endif
 
   let script_functions = values(s:get_cached_script_candidates().functions)
-  if a:complete_str =~ '^s:'
+  if a:complete_str =~# '^s:'
     let list = script_functions
-  elseif a:complete_str =~ '^\a:'
+  elseif a:complete_str =~# '^\a:'
     let list = deepcopy(script_functions)
     for keyword in list
       let keyword.word = '<SID>' . keyword.word[2:]
@@ -145,7 +145,7 @@ function! necovim#helper#function(cur_text, complete_str) abort
   return list
 endfunction
 function! necovim#helper#let(cur_text, complete_str) abort
-  if a:cur_text !~ '='
+  if a:cur_text !~# '='
     return necovim#helper#var(a:cur_text, a:complete_str)
   elseif a:cur_text =~# '\<let\s\+&\%([lg]:\)\?filetype\s*=\s*'
     " FileType.
@@ -160,7 +160,7 @@ function! necovim#helper#option(cur_text, complete_str) abort
     let s:internal_candidates_list.options = s:make_cache_options()
   endif
 
-  if a:cur_text =~ '\<set\%[local]\s\+\%(filetype\|ft\)='
+  if a:cur_text =~# '\<set\%[local]\s\+\%(filetype\|ft\)='
     return necovim#helper#filetype(a:cur_text, a:complete_str)
   else
     return copy(s:internal_candidates_list.options)
@@ -170,10 +170,10 @@ function! necovim#helper#var_dictionary(cur_text, complete_str) abort
   let var_name = matchstr(a:cur_text,
         \'\%(\a:\)\?\h\w*\ze\.\%(\h\w*\%(()\?\)\?\)\?$')
   let list = []
-  if a:cur_text =~ '[btwg]:\h\w*\.\%(\h\w*\%(()\?\)\?\)\?$'
+  if a:cur_text =~# '[btwg]:\h\w*\.\%(\h\w*\%(()\?\)\?\)\?$'
     let list = has_key(s:global_candidates_list.dictionary_variables, var_name) ?
           \ values(s:global_candidates_list.dictionary_variables[var_name]) : []
-  elseif a:cur_text =~ 's:\h\w*\.\%(\h\w*\%(()\?\)\?\)\?$'
+  elseif a:cur_text =~# 's:\h\w*\.\%(\h\w*\%(()\?\)\?\)\?$'
     let list = values(get(s:get_cached_script_candidates().dictionary_variables,
           \ var_name, {}))
   endif
@@ -212,9 +212,9 @@ function! s:get_local_variables() abort
   let end_line = (line('.') > 100) ? line('.') - 100 : 1
   while line_num >= end_line
     let line = getline(line_num)
-    if line =~ '\<endf\%[unction]\>'
+    if line =~# '\<endf\%[unction]\>'
       break
-    elseif line =~ '\<fu\%[nction]!\?\s\+'
+    elseif line =~# '\<fu\%[nction]!\?\s\+'
       " Get function arguments.
       call s:analyze_variable_line(line, keyword_dict)
       break
@@ -228,8 +228,8 @@ function! s:get_local_variables() abort
   while line_num <= end_line
     let line = getline(line_num)
 
-    if line =~ '\<\%(let\|for\)\s\+'
-      if line =~ '\<\%(let\|for\)\s\+s:' &&
+    if line =~# '\<\%(let\|for\)\s\+'
+      if line =~# '\<\%(let\|for\)\s\+s:' &&
             \ has_key(s:script_candidates_list, bufnr('%'))
             \ && has_key(s:script_candidates_list[bufnr('%')], 'variables')
         let candidates_list = s:script_candidates_list[bufnr('%')].variables
@@ -262,10 +262,10 @@ function! s:get_script_candidates(bufnumber) abort
   let var_pattern = '\a:[[:alnum:]_:]*\.\h\w*\%(()\?\)\?'
 
   for line in getbufline(a:bufnumber, 1, '$')
-    if line =~ '\<fu\%[nction]!\?\s\+'
+    if line =~# '\<fu\%[nction]!\?\s\+'
       call s:analyze_function_line(
             \ line, function_dict, function_prototypes)
-    elseif line =~ '\<let\s\+'
+    elseif line =~# '\<let\s\+'
       " Get script variable.
       call s:analyze_variable_line(line, variable_dict)
     elseif line =~ var_pattern
@@ -291,15 +291,15 @@ endfunction
 
 function! s:make_cache_options() abort
   let options = map(filter(split(s:redir('set all'), '\s\{2,}\|\n')[1:],
-        \ "!empty(v:val) && v:val =~ '^\\h\\w*=\\?'"),
+        \ "!empty(v:val) && v:val =~# '^\\h\\w*=\\?'"),
         \ "substitute(v:val, '^no\\|=\\zs.*$', '', '')")
   for option in copy(options)
-    if option[-1:] != '='
+    if option[-1:] !=# '='
       call add(options, 'no'.option)
     endif
   endfor
 
-  return map(filter(options, "v:val =~ '^\\h\\w*=\\?'"), "{
+  return map(filter(options, "v:val =~# '^\\h\\w*=\\?'"), "{
         \ 'word' : substitute(v:val, '=$', '', ''), 'kind' : 'o',
         \ }")
 endfunction
@@ -351,7 +351,7 @@ function! s:make_cache_functions() abort
   let end = match(lines, '^abs', start, 2)
   for i in range(end-1, start, -1)
     let func = matchstr(lines[i], '^\s*\zs\w\+(.\{-})')
-    if func != ''
+    if func !=# ''
       call insert(functions, {
             \ 'word' : substitute(func, '(\zs.\+)', '', ''),
             \ 'abbr' : substitute(func, '(\zs\s\+', '', ''),
@@ -414,13 +414,13 @@ function! s:get_functionlist() abort
   let function_prototypes = {}
   for line in split(s:redir('function'), '\n')
     let line = line[9:]
-    if line =~ '^<SNR>'
+    if line =~# '^<SNR>'
       continue
     endif
     let orig_line = line
 
     let word = matchstr(line, '\h[[:alnum:]_:#.]*()\?')
-    if word != ''
+    if word !=# ''
       let keyword_dict[word] = {
             \ 'word' : word, 'abbr' : line,
             \}
@@ -443,7 +443,7 @@ function! s:get_mappinglist() abort
   let keyword_list = []
   for line in split(s:redir('map'), '\n')
     let map = matchstr(line, '^\a*\s*\zs\S\+')
-    if map !~ '^<' || map =~ '^<SNR>'
+    if map !~# '^<' || map =~# '^<SNR>'
       continue
     endif
     call add(keyword_list, { 'word' : map })
@@ -468,7 +468,7 @@ function! s:analyze_function_line(line, keyword_dict, prototype) abort
         \ '\<fu\%[nction]!\?\s\+\zs.*)'), '".*$', '', '')
   let orig_line = line
   let word = matchstr(line, '^\h[[:alnum:]_:#.]*()\?')
-  if word != '' && !has_key(a:keyword_dict, word)
+  if word !=# '' && !has_key(a:keyword_dict, word)
     let a:keyword_dict[word] = {
           \ 'word' : word, 'abbr' : line, 'kind' : 'f'
           \}
@@ -476,7 +476,7 @@ function! s:analyze_function_line(line, keyword_dict, prototype) abort
   endif
 endfunction
 function! s:analyze_variable_line(line, keyword_dict) abort
-  if a:line =~ '\<\%(let\|for\)\s\+\a[[:alnum:]_:]*'
+  if a:line =~# '\<\%(let\|for\)\s\+\a[[:alnum:]_:]*'
     " let var = pattern.
     let word = matchstr(a:line, '\<\%(let\|for\)\s\+\zs\a[[:alnum:]_:]*')
     let expression = matchstr(a:line, '\<let\s\+\a[[:alnum:]_:]*\s*=\s*\zs.*$')
@@ -485,11 +485,11 @@ function! s:analyze_variable_line(line, keyword_dict) abort
             \ 'word' : word,
             \ 'kind' : s:get_variable_type(expression)
             \}
-    elseif expression != '' && a:keyword_dict[word].kind == ''
+    elseif expression !=# '' && a:keyword_dict[word].kind ==# ''
       " Update kind.
       let a:keyword_dict[word].kind = s:get_variable_type(expression)
     endif
-  elseif a:line =~ '\<\%(let\|for\)\s\+\[.\{-}\]'
+  elseif a:line =~# '\<\%(let\|for\)\s\+\[.\{-}\]'
     " let [var1, var2] = pattern.
     let words = split(matchstr(a:line,
           \'\<\%(let\|for\)\s\+\[\zs.\{-}\ze\]'), '[,[:space:]]\+')
@@ -506,24 +506,24 @@ function! s:analyze_variable_line(line, keyword_dict) abort
                 \ 'word' : word,
                 \ 'kind' : s:get_variable_type(expression)
                 \}
-        elseif expression != '' && a:keyword_dict[word].kind == ''
+        elseif expression !=# '' && a:keyword_dict[word].kind ==# ''
           " Update kind.
           let a:keyword_dict[word].kind = s:get_variable_type(expression)
         endif
 
         let i += 1
       endwhile
-    elseif a:line =~ '\<fu\%[nction]!\?\s\+'
+    elseif a:line =~# '\<fu\%[nction]!\?\s\+'
       " Get function arguments.
       for arg in split(matchstr(a:line, '^[^(]*(\zs[^)]*'), '\s*,\s*')
-        let word = 'a:' . (arg == '...' ?  '000' : arg)
+        let word = 'a:' . (arg ==# '...' ?  '000' : arg)
         let a:keyword_dict[word] = {
               \ 'word' : word,
-              \ 'kind' : (arg == '...' ?  '[]' : '')
+              \ 'kind' : (arg ==# '...' ?  '[]' : '')
               \}
 
       endfor
-      if a:line =~ '\.\.\.)'
+      if a:line =~# '\.\.\.)'
         " Extra arguments.
         for arg in range(5)
           let word = 'a:' . arg
@@ -553,14 +553,14 @@ function! s:analyze_dictionary_variable_line(line, keyword_dict, var_name) abort
 
   if !has_key(a:keyword_dict, word)
     let a:keyword_dict[word] = { 'word' : word, 'kind' : kind }
-  elseif kind != '' && a:keyword_dict[word].kind == ''
+  elseif kind !=# '' && a:keyword_dict[word].kind ==# ''
     " Update kind.
     let a:keyword_dict[word].kind = kind
   endif
 endfunction
 function! s:split_args(cur_text, complete_str) abort
   let args = split(a:cur_text)
-  if a:complete_str == ''
+  if a:complete_str ==# ''
     call add(args, '')
   endif
 
@@ -589,19 +589,19 @@ call s:set_dictionary_helper(
 
 function! s:get_variable_type(expression) abort
   " Analyze variable type.
-  if a:expression =~ '^\%(\s*+\)\?\s*\d\+\.\d\+'
+  if a:expression =~# '^\%(\s*+\)\?\s*\d\+\.\d\+'
     return '.'
-  elseif a:expression =~ '^\%(\s*+\)\?\s*\d\+'
+  elseif a:expression =~# '^\%(\s*+\)\?\s*\d\+'
     return '0'
-  elseif a:expression =~ '^\%(\s*\.\)\?\s*["'']'
+  elseif a:expression =~# '^\%(\s*\.\)\?\s*["'']'
     return '""'
-  elseif a:expression =~ '\<function('
+  elseif a:expression =~# '\<function('
     return '()'
-  elseif a:expression =~ '^\%(\s*+\)\?\s*\['
+  elseif a:expression =~# '^\%(\s*+\)\?\s*\['
     return '[]'
-  elseif a:expression =~ '^\s*{\|^\.\h[[:alnum:]_:]*'
+  elseif a:expression =~# '^\s*{\|^\.\h[[:alnum:]_:]*'
     return '{}'
-  elseif a:expression =~ '\<\h\w*('
+  elseif a:expression =~# '\<\h\w*('
     " Function.
     let func_name = matchstr(a:expression, '\<\zs\h\w*\ze(')
     return has_key(s:function_return_types, func_name) ? s:function_return_types[func_name] : ''
