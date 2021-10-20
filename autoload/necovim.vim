@@ -13,6 +13,13 @@ let g:necovim#keyword_pattern =
 
 
 function! necovim#get_complete_position(input) abort
+  if v:version < 800
+    echohl Error
+    echomsg '[neco-vim] Vim 8.0 compatible is required'
+    echohl None
+    return -1
+  endif
+
   let cur_text = necovim#get_cur_text(a:input)
 
   if cur_text =~# '^\s*"'
@@ -35,6 +42,13 @@ function! necovim#get_complete_position(input) abort
 endfunction
 
 function! necovim#gather_candidates(input, complete_str) abort
+  if v:version < 800
+    echohl Error
+    echomsg '[neco-vim] Vim 8.0 compatible is required'
+    echohl None
+    return []
+  endif
+
   let cur_text = necovim#get_cur_text(a:input)
 
   if cur_text =~# '\h\w*\.\%(\h\w*\)\?$'

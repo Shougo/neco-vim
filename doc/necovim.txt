@@ -1,6 +1,6 @@
-*necovim.txt*	Vim source for neocomplete/deoplete/ddc.
+*necovim.txt*	Vim completion source for neocomplete/deoplete/ddc.
 
-Version: 0.1
+Version: 1.0
 Author: Shougo <Shougo.Matsu at gmail.com>
 License: MIT license
 
@@ -9,24 +9,22 @@ CONTENTS					*necovim-contents*
 Introduction		|necovim-introduction|
 Install			|necovim-install|
 Interface		|necovim-interface|
-  Commands		  |necovim-commands|
   Variables		  |necovim-variables|
 FAQ			|necovim-faq|
 
 ==============================================================================
 INTRODUCTION					*necovim-introduction*
 
-*neco-vim* is the Vim source for neocomplete/deoplete.
+*neco-vim* is the Vim completion source for neocomplete/deoplete/ddc.
 
 ==============================================================================
 INSTALL						*necovim-install*
 
+Vim 8.0+ or neovim 0.5.0+ is required.
+
 
 ==============================================================================
 INTERFACE					*necovim-interface*
-
-------------------------------------------------------------------------------
-COMMANDS 					*necovim-commands*
 
 ------------------------------------------------------------------------------
 VARIABLES 					*necovim-variables*

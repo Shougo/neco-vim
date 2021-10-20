@@ -32,11 +32,6 @@ function! necovim#helper#augroup(cur_text, complete_str) abort
 
   return copy(s:global_candidates_list.augroups)
 endfunction
-function! necovim#helper#colorscheme_args(cur_text, complete_str) abort
-  return s:make_completion_list(map(split(
-        \ globpath(&runtimepath, 'colors/*.vim'), '\n'),
-        \ 'fnamemodify(v:val, ":t:r")'))
-endfunction
 function! necovim#helper#command(cur_text, complete_str) abort
   if a:complete_str ==# ''
     " Disable for huge candidates
@@ -65,24 +60,18 @@ function! necovim#helper#command(cur_text, complete_str) abort
     let list = bufname('%') ==# '[Command Line]' ? [] :
           \ necovim#helper#expression(a:cur_text, a:complete_str)
 
-    if s:has_cmdline()
-      try
-        " Note: Convert "~/"
-        let completions = map(getcompletion(a:cur_text, 'cmdline'),
-              \ "a:complete_str =~# '^\\~/' ? fnamemodify(v:val, ':~')
-              \  : v:val"
-              \ )
-        let list += s:make_completion_list(completions)
-      catch
-        " Ignore getcompletion() error
-      endtry
-    endif
+    try
+      let list += s:make_completion_list(
+            \ getcompletion(a:cur_text, 'cmdline'))
+    catch
+      " Ignore getcompletion() error
+    endtry
   endif
 
   " Filter by complete_str to reduce candidates
   let prefix = a:complete_str[:1]
   return filter(s:uniq_by(list, 'v:val.word'),
-        \ 'stridx(v:val.word, prefix) == 0')
+        \ { _, val -> stridx(val.word, prefix) == 0})
 endfunction
 function! necovim#helper#environment(cur_text, complete_str) abort
   " Make cache.
@@ -93,9 +82,10 @@ function! necovim#helper#environment(cur_text, complete_str) abort
   return copy(s:global_candidates_list.environments)
 endfunction
 function! necovim#helper#expand(cur_text, complete_str) abort
-  return s:make_completion_list(
-        \ ['<cfile>', '<afile>', '<abuf>', '<amatch>',
-        \  '<sfile>', '<cword>', '<cWORD>', '<client>'])
+  return s:make_completion_list([
+        \ '<cfile>', '<afile>', '<abuf>', '<amatch>',
+        \ '<sfile>', '<cword>', '<cWORD>', '<client>'
+        \ ])
 endfunction
 function! necovim#helper#expression(cur_text, complete_str) abort
   return necovim#helper#function(a:cur_text, a:complete_str)
@@ -114,7 +104,8 @@ function! necovim#helper#filetype(cur_text, complete_str) abort
           \ split(globpath(&runtimepath, 'syntax/*.vim'), '\n') +
           \ split(globpath(&runtimepath, 'indent/*.vim'), '\n') +
           \ split(globpath(&runtimepath, 'ftplugin/*.vim'), '\n')
-          \ , "matchstr(fnamemodify(v:val, ':t:r'), '^[[:alnum:]-]*')"))
+          \ , { _, val -> matchstr(
+          \    fnamemodify(val, ':t:r'), '^[[:alnum:]-]*')}))
   endif
 
   return copy(s:internal_candidates_list.filetypes)
@@ -141,8 +132,10 @@ function! necovim#helper#function(cur_text, complete_str) abort
     let list = copy(s:internal_candidates_list.functions)
           \ + copy(s:global_candidates_list.functions)
           \ + script_functions
-    for functions in map(values(s:script_candidates_list), 'v:val.functions')
-      let list += values(filter(copy(functions), 'v:val.word[:1] !=# "s:"'))
+    for functions in map(values(s:script_candidates_list),
+          \ { _, val -> val.functions})
+      let list += values(filter(copy(functions),
+            \ { _, val -> val.word[:1] !=# 's:'}))
     endfor
   endif
 
@@ -175,10 +168,11 @@ function! necovim#helper#var_dictionary(cur_text, complete_str) abort
         \'\%(\a:\)\?\h\w*\ze\.\%(\h\w*\%(()\?\)\?\)\?$')
   let list = []
   if a:cur_text =~# '[btwg]:\h\w*\.\%(\h\w*\%(()\?\)\?\)\?$'
-    let list = has_key(s:global_candidates_list.dictionary_variables, var_name) ?
-          \ values(s:global_candidates_list.dictionary_variables[var_name]) : []
+    let list = get(
+          \ s:global_candidates_list.dictionary_variables, var_name, [])]
   elseif a:cur_text =~# 's:\h\w*\.\%(\h\w*\%(()\?\)\?\)\?$'
-    let list = values(get(s:get_cached_script_candidates().dictionary_variables,
+    let list = values(get(
+          \ s:get_cached_script_candidates().dictionary_variables,
           \ var_name, {}))
   endif
 
@@ -213,7 +207,7 @@ function! s:get_local_variables() abort
   let keyword_dict = {}
   " Search function.
   let line_num = line('.') - 1
-  let end_line = (line('.') > 100) ? line('.') - 100 : 1
+  let end_line = max([line('.') - 100, 1])
   while line_num >= end_line
     let line = getline(line_num)
     if line =~# '\<endf\%[unction]\>'
@@ -288,24 +282,29 @@ function! s:get_script_candidates(bufnumber) abort
     endif
   endfor
 
-  return { 'functions' : function_dict, 'variables' : variable_dict,
+  return {
+        \ 'functions' : function_dict,
+        \ 'variables' : variable_dict,
         \ 'function_prototypes' : function_prototypes,
-        \ 'dictionary_variables' : dictionary_variable_dict }
+        \ 'dictionary_variables' : dictionary_variable_dict,
+        \ }
 endfunction
 
 function! s:make_cache_options() abort
-  let options = map(filter(split(s:redir('set all'), '\s\{2,}\|\n')[1:],
-        \ "!empty(v:val) && v:val =~# '^\\h\\w*=\\?'"),
-        \ "substitute(v:val, '^no\\|=\\zs.*$', '', '')")
+  let options = map(filter(split(execute('set all'), '\s\{2,}\|\n')[1:],
+        \ { _, val -> !empty(val) && val =~# '^\h\w*=\?' }),
+        \ { _, val -> substitute(val, '^no\|=\zs.*$', '', '') })
   for option in copy(options)
     if option[-1:] !=# '='
       call add(options, 'no'.option)
     endif
   endfor
 
-  return map(filter(options, "v:val =~# '^\\h\\w*=\\?'"), "{
-        \ 'word' : substitute(v:val, '=$', '', ''), 'kind' : 'o',
-        \ }")
+  return map(filter(options, { _, val -> val =~# '^\h\w*=\?' }),
+        \ { _, val -> {
+        \     'word': substitute(val, '=$', '', ''), 'kind' : 'o',
+        \   }
+        \ })
 endfunction
 function! s:make_cache_features() abort
   let helpfile = expand(findfile('doc/eval.txt', &runtimepath))
@@ -316,9 +315,7 @@ function! s:make_cache_features() abort
 
   let features = []
   let lines = readfile(helpfile)
-  let start = match(lines,
-        \ ((v:version > 704 || v:version == 704 && has('patch11')) ?
-        \   'acl' : '^all_builtin_terms'))
+  let start = match(lines, 'acl')
   let end = match(lines, has('nvim') ? '^wsl' : '^x11')
   for l in lines[start : end]
     let _ = matchlist(l, '^\(\k\+\)\t\+\(.\+\)$')
@@ -334,12 +331,10 @@ function! s:make_cache_features() abort
         \ 'word' : 'patch',
         \ 'menu' : '; Included patches Ex: patch123',
         \ })
-  if has('patch-7.4.237')
-    call add(features, {
-          \ 'word' : 'patch-',
-          \ 'menu' : '; Version and patches Ex: patch-7.4.237'
-          \ })
-  endif
+  call add(features, {
+        \ 'word' : 'patch-',
+        \ 'menu' : '; Version and patches Ex: patch-7.4.237'
+        \ })
 
   return features
 endfunction
@@ -393,9 +388,7 @@ endfunction
 function! s:get_cmdlist() abort
   let list = exists('*nvim_get_commands') ?
         \ keys(nvim_get_commands({'builtin': v:false})) :
-        \ exists('*getcompletion') ?
-        \ getcompletion('', 'command') :
-        \ split(s:redir('command'), '\n')[1:]
+        \ getcompletion('', 'command')
   return s:make_completion_list(list)
 endfunction
 function! s:get_variablelist(dict, prefix) abort
@@ -416,7 +409,7 @@ endfunction
 function! s:get_functionlist() abort
   let keyword_dict = {}
   let function_prototypes = {}
-  for line in split(s:redir('function'), '\n')
+  for line in split(execute('function'), '\n')
     let line = line[9:]
     if line =~# '^<SNR>'
       continue
@@ -438,14 +431,11 @@ function! s:get_functionlist() abort
   return values(keyword_dict)
 endfunction
 function! s:get_augrouplist() abort
-  let list = exists('*getcompletion') ?
-        \ getcompletion('', 'augroup') :
-        \ split(s:redir('augroup') . ' END', '\s\|\n')
-  return s:make_completion_list(list)
+  return s:make_completion_list(getcompletion('', 'augroup'))
 endfunction
 function! s:get_mappinglist() abort
   let keyword_list = []
-  for line in split(s:redir('map'), '\n')
+  for line in split(execute('map'), '\n')
     let map = matchstr(line, '^\a*\s*\zs\S\+')
     if map !~# '^<' || map =~# '^<SNR>'
       continue
@@ -464,10 +454,9 @@ function! s:get_envlist() abort
 endfunction
 
 function! s:make_completion_list(list) abort
-  return map(copy(a:list), "v:val !=# '' && v:val[-1:] ==# '/' ?
-        \  { 'word' : v:val[:-2], 'abbr': v:val } :
-        \  { 'word' : v:val }
-        \ ")
+  return map(copy(a:list), { _, val -> val !=# '' && val[-1:] ==# '/' ?
+        \  { 'word': val[:-2], 'abbr': val } : { 'word': val }
+        \ })
 endfunction
 function! s:analyze_function_line(line, keyword_dict, prototype) abort
   " Get script function.
@@ -565,14 +554,6 @@ function! s:analyze_dictionary_variable_line(line, keyword_dict, var_name) abort
     let a:keyword_dict[word].kind = kind
   endif
 endfunction
-function! s:split_args(cur_text, complete_str) abort
-  let args = split(a:cur_text)
-  if a:complete_str ==# ''
-    call add(args, '')
-  endif
-
-  return args
-endfunction
 
 " Initialize return types.
 function! s:set_dictionary_helper(variable, keys, value) abort
@@ -611,7 +592,7 @@ function! s:get_variable_type(expression) abort
   elseif a:expression =~# '\<\h\w*('
     " Function.
     let func_name = matchstr(a:expression, '\<\zs\h\w*\ze(')
-    return has_key(s:function_return_types, func_name) ? s:function_return_types[func_name] : ''
+    return get(s:function_return_types, func_name, '')
   else
     return ''
   endif
@@ -633,31 +614,6 @@ function! s:check_global_candidates(key) abort
 
   return !has_key(s:global_candidates_list, a:key)
 endfunction
-function! s:redir(command) abort
-  if exists('*execute')
-    return execute(a:command)
-  endif
-
-  redir => r
-  execute 'silent!' a:command
-  redir END
-
-  return r
-endfunction
-
-function! s:has_cmdline() abort
-  if !exists('*getcompletion')
-    return 0
-  endif
-
-  try
-    call getcompletion('', 'cmdline')
-  catch
-    return 0
-  endtry
-
-  return 1
-endfunction
 
 " Removes duplicates from a list.
 function! s:uniq(list) abort
@@ -678,5 +634,5 @@ function! s:uniq_by(list, f) abort
       let i += 1
     endif
   endwhile
-  return map(list, 'v:val[0]')
+  return map(list, { _, val -> val[0]})
 endfunction
