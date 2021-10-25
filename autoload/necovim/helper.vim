@@ -117,6 +117,10 @@ function! necovim#helper#function(cur_text, complete_str) abort
   endif
   if !has_key(s:internal_candidates_list, 'functions')
     let s:internal_candidates_list.functions = s:make_cache_functions()
+    if has('nvim')
+      let s:internal_candidates_list.functions +=
+            \ s:make_cache_functions_nvim()
+    endif
   endif
 
   let script_functions = values(s:get_cached_script_candidates().functions)
@@ -348,7 +352,30 @@ function! s:make_cache_functions() abort
   let functions = []
   let start = match(lines, '^abs')
   let end = match(lines, '^abs', start, 2)
-  for i in range(end-1, start, -1)
+  for i in range(end - 1, start, -1)
+    let func = matchstr(lines[i], '^\s*\zs\w\+(.\{-})')
+    if func !=# ''
+      call insert(functions, {
+            \ 'word' : substitute(func, '(\zs.\+)', '', ''),
+            \ 'abbr' : substitute(func, '(\zs\s\+', '', ''),
+            \ 'info' : substitute(lines[i], '\t', ' ', 'g'),
+            \ })
+    endif
+  endfor
+
+  return functions
+endfunction
+function! s:make_cache_functions_nvim() abort
+  let helpfile = expand(findfile('doc/api.txt', &runtimepath))
+  if !filereadable(helpfile)
+    return []
+  endif
+
+  let lines = readfile(helpfile)
+  let functions = []
+  let start = match(lines, '^nvim__get_hl_defs')
+  let end = match(lines, '^nvim_ui_try_resize_grid')
+  for i in range(end, start, -1)
     let func = matchstr(lines[i], '^\s*\zs\w\+(.\{-})')
     if func !=# ''
       call insert(functions, {
