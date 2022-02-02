@@ -173,7 +173,7 @@ function! necovim#helper#var_dictionary(cur_text, complete_str) abort
   let list = []
   if a:cur_text =~# '[btwg]:\h\w*\.\%(\h\w*\%(()\?\)\?\)\?$'
     let list = get(
-          \ s:global_candidates_list.dictionary_variables, var_name, [])]
+          \ s:global_candidates_list.dictionary_variables, var_name, [])
   elseif a:cur_text =~# 's:\h\w*\.\%(\h\w*\%(()\?\)\?\)\?$'
     let list = values(get(
           \ s:get_cached_script_candidates().dictionary_variables,
