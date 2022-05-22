@@ -343,7 +343,7 @@ function! s:make_cache_features() abort
   return features
 endfunction
 function! s:make_cache_functions() abort
-  let helpfile = expand(findfile('doc/eval.txt', &runtimepath))
+  let helpfile = expand(findfile('doc/builtin.txt', &runtimepath))
   if !filereadable(helpfile)
     return []
   endif
