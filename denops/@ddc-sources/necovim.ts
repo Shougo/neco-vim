@@ -1,11 +1,13 @@
 import {
   BaseSource,
-  Candidate,
   Context,
-} from "https://deno.land/x/ddc_vim@v0.13.0/types.ts";
-import { Denops } from "https://deno.land/x/ddc_vim@v0.13.0/deps.ts";
+  Item,
+} from "https://deno.land/x/ddc_vim@v3.1.0/types.ts";
+import { Denops } from "https://deno.land/x/ddc_vim@v3.1.0/deps.ts";
 
-export class Source extends BaseSource<{}> {
+type Params = Record<never, never>;
+
+export class Source extends BaseSource<Params> {
   isBytePos = true;
 
   async getCompletePosition(args: {
@@ -16,15 +18,15 @@ export class Source extends BaseSource<{}> {
       'necovim#get_complete_position', args.context.input) as number;
   }
 
-  async gatherCandidates(args: {
+  async gather(args: {
     denops: Denops,
     context: Context,
     completeStr: string,
-  }): Promise<Candidate[]> {
+  }): Promise<Item[]> {
     return await args.denops.call(
         'necovim#gather_candidates',
-        args.context.input, args.completeStr) as Candidate[];
+        args.context.input, args.completeStr) as Item[];
   }
 
-  params(): {} { return {}; }
+  params(): Params { return {}; }
 }
