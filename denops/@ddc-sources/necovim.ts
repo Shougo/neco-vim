@@ -2,15 +2,15 @@ import {
   BaseSource,
   Context,
   Item,
-} from "https://deno.land/x/ddc_vim@v3.1.0/types.ts";
-import { Denops } from "https://deno.land/x/ddc_vim@v3.1.0/deps.ts";
+} from "https://deno.land/x/ddc_vim@v3.2.0/types.ts";
+import { Denops } from "https://deno.land/x/ddc_vim@v3.2.0/deps.ts";
 
 type Params = Record<never, never>;
 
 export class Source extends BaseSource<Params> {
   isBytePos = true;
 
-  async getCompletePosition(args: {
+  override async getCompletePosition(args: {
     denops: Denops,
     context: Context,
   }): Promise<number> {
@@ -18,7 +18,7 @@ export class Source extends BaseSource<Params> {
       'necovim#get_complete_position', args.context.input) as number;
   }
 
-  async gather(args: {
+  override async gather(args: {
     denops: Denops,
     context: Context,
     completeStr: string,
@@ -28,5 +28,5 @@ export class Source extends BaseSource<Params> {
         args.context.input, args.completeStr) as Item[];
   }
 
-  params(): Params { return {}; }
+  override params(): Params { return {}; }
 }
