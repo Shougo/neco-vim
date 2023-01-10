@@ -539,7 +539,7 @@ function! s:analyze_variable_line(line, keyword_dict) abort
     elseif a:line =~# '\<fu\%[nction]!\?\s\+'
       " Get function arguments.
       for arg in split(matchstr(a:line, '^[^(]*(\zs[^)]*'), '\s*,\s*')
-        let word = 'a:' . (arg ==# '...' ?  '000' : arg)
+        let word = 'a:' . (arg ==# '...' ?  '000' : matchstr(arg, '\w\+'))
         let a:keyword_dict[word] = {
               \ 'word' : word,
               \ 'kind' : (arg ==# '...' ?  '[]' : '')
