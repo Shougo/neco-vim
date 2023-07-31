@@ -113,10 +113,6 @@ function! necovim#get_cur_text(input) abort
 
   return split(cur_text, '\s\+|\s\+\|<bar>', 1)[-1]
 endfunction
-function! necovim#get_command(cur_text) abort
-  return matchstr(a:cur_text, '\<\%(\d\+\)\?\zs\h\w*\ze!\?\|'.
-        \ '\<\%([[:digit:],[:space:]$''<>]\+\)\?\zs\h\w*\ze/.*')
-endfunction
 
 function! necovim#match_word(cur_text, pattern) abort
   let complete_pos = match(a:cur_text, a:pattern)

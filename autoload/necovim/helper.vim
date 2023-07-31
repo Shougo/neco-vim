@@ -352,6 +352,10 @@ function! s:make_cache_functions() abort
   let functions = []
   let start = match(lines, '^abs')
   let end = match(lines, '^abs', start, 2)
+  if end <= 0
+    " NOTE: In neovim 0.10+, |builtin-function-list| is removed.  Too bad.
+    let end = match(lines, '^xor', start)
+  endif
   for i in range(end - 1, start, -1)
     let func = matchstr(lines[i], '^\s*\zs\w\+(.\{-})')
     if func !=# ''
