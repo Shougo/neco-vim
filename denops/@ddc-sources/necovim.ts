@@ -2,8 +2,9 @@ import {
   BaseSource,
   Context,
   Item,
-} from "https://deno.land/x/ddc_vim@v3.2.0/types.ts";
-import { Denops } from "https://deno.land/x/ddc_vim@v3.2.0/deps.ts";
+  Previewer,
+} from "https://deno.land/x/ddc_vim@v4.0.3/types.ts";
+import { Denops, fn } from "https://deno.land/x/ddc_vim@v4.0.3/deps.ts";
 
 type Params = Record<never, never>;
 
@@ -26,6 +27,23 @@ export class Source extends BaseSource<Params> {
     return await args.denops.call(
         'necovim#gather_candidates',
         args.context.input, args.completeStr) as Item[];
+  }
+
+  override async getPreviewer(args: {
+    denops: Denops,
+    item: Item;
+  }): Promise<Previewer> {
+    const help = await fn.getcompletion(args.denops, args.item.word, "help");
+    if (help.length === 0) {
+      return {
+        kind: "empty",
+      };
+    } else {
+      return {
+        kind: "help",
+        tag: args.item.word,
+      };
+    }
   }
 
   override params(): Params { return {}; }
