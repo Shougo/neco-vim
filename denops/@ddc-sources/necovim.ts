@@ -6,7 +6,7 @@ import {
 } from "https://deno.land/x/ddc_vim@v4.0.4/types.ts";
 import { Denops, fn } from "https://deno.land/x/ddc_vim@v4.0.4/deps.ts";
 
-type Params = Record<never, never>;
+type Params = Record<string, never>;
 
 export class Source extends BaseSource<Params> {
   isBytePos = true;
