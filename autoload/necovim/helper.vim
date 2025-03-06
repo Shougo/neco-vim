@@ -429,7 +429,7 @@ function! s:get_variablelist(dict, prefix) abort
   let list = []
   for [key, Val] in items(a:dict)
     let kind = '?'
-    silent! let kind = kind_dict[type(Val)]
+    silent! let kind = get(kind_dict, type(Val), '?')
     call add(list, {
           \ 'word' : a:prefix . key,
           \ 'kind' : kind,
